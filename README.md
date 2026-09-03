@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # MedSafe Senior (nome temporário) - Aplicativo Mobile (Android)
 
 Aplicativo nativo para Android desenvolvido em **Kotlin com Jetpack Compose**, focado na usabilidade, acessibilidade e controle rigoroso de rotinas medicamentosas para a população idosa.
@@ -19,7 +18,11 @@ O *MedSafe Senior* resolve problemas críticos de adesão terapêutica na tercei
 4. **Controle de Estoque Preditivo:** Alerta visual quando o medicamento está acabando, com botão de direcionamento rápido para o WhatsApp da farmácia cadastrada.
 5. **Cronograma de Farmácia Popular:** Lembretes de prazos para liberação de novos medicamentos.
 6. **Rede de Apoio e Emergência:** Botões de acesso rápido para o 190 e contatos de familiares/farmácias.
-=======
-# software-senior-mobile
-Aplicativo Kotlin com Jetpack Compose
->>>>>>> 29323659801a58ce97d72ba03cc45b8477e263d3
+
+## Estrutura do Projeto
+Projeto Android padrão (Gradle + Kotlin DSL + version catalog), gerado com o template Empty Activity do Android Studio e Jetpack Compose:
+* `app/src/main/java/com/medsafe/mobile/` — código Kotlin (`MainActivity` e tema `ui/theme`).
+* `app/src/main/AndroidManifest.xml` — configuração do app.
+* `gradle/libs.versions.toml` — catálogo de versões das dependências.
+
+Para rodar: abra a pasta `software-senior-mobile` no Android Studio e aguarde o Gradle Sync (o Android Studio recria o `gradle-wrapper.jar` automaticamente se ele não estiver presente no repositório).
