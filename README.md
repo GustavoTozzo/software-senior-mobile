@@ -18,7 +18,6 @@ O *MedSafe Senior* resolve problemas críticos de adesão terapêutica na tercei
 4. **Controle de Estoque Preditivo:** Alerta visual quando o medicamento está acabando, com botão de direcionamento rápido para o WhatsApp da farmácia cadastrada.
 5. **Cronograma de Farmácia Popular:** Lembretes de prazos para liberação de novos medicamentos.
 6. **Rede de Apoio e Emergência:** Botões de acesso rápido para o 190 e contatos de familiares/farmácias.
-
 ## Estrutura do Projeto
 Projeto Android padrão (Gradle + Kotlin DSL + version catalog), gerado com o template Empty Activity do Android Studio e Jetpack Compose:
 * `app/src/main/java/com/medsafe/mobile/` — código Kotlin (`MainActivity` e tema `ui/theme`).
