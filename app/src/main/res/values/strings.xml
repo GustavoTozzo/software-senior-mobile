@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MedSafe Senior</string>
+    <string name="welcome_title">Bem-vindo(a) ao MedSafe Senior</string>
+    <string name="welcome_subtitle">Seu app de lembrete de remédios</string>
+</resources>

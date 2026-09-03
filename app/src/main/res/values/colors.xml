@@ -1,0 +1,5 @@
+<resources>
+    <color name="medsafe_primary">#1B5E20</color>
+    <color name="medsafe_on_primary">#FFFFFF</color>
+    <color name="medsafe_background">#FFFFFF</color>
+</resources>
