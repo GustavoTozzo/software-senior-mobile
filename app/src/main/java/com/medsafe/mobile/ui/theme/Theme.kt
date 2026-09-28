@@ -9,21 +9,31 @@ import androidx.compose.runtime.Composable
 private val LightColors = lightColorScheme(
     primary = MedSafeGreen,
     onPrimary = MedSafeBackground,
+    primaryContainer = MedSafeSuccessContainer,
+    onPrimaryContainer = MedSafeOnSuccessContainer,
     secondary = MedSafeAccent,
     background = MedSafeBackground,
     onBackground = MedSafeOnBackground,
-    surface = MedSafeSurface,
+    surface = MedSafeBackground,
     onSurface = MedSafeOnBackground,
+    surfaceVariant = MedSafeSurface,
+    onSurfaceVariant = MedSafeMuted,
+    outline = MedSafeOutline,
 )
 
 private val DarkColors = darkColorScheme(
     primary = MedSafeGreenLight,
     onPrimary = MedSafeOnBackground,
+    primaryContainer = MedSafeGreenDark,
+    onPrimaryContainer = MedSafeBackground,
     secondary = MedSafeAccent,
     background = MedSafeGreenDark,
     onBackground = MedSafeBackground,
     surface = MedSafeGreenDark,
     onSurface = MedSafeBackground,
+    surfaceVariant = MedSafeGreenDark,
+    onSurfaceVariant = MedSafeSurface,
+    outline = MedSafeGreenLight,
 )
 
 @Composable
