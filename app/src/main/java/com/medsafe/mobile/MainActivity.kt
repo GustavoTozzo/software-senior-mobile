@@ -4,20 +4,21 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.medsafe.mobile.ui.screens.CadastroMedicamentoScreen
+import com.medsafe.mobile.ui.screens.DashboardScreen
+import com.medsafe.mobile.ui.screens.LoginScreen
 import com.medsafe.mobile.ui.theme.MedSafeSeniorTheme
+
+private object Rotas {
+    const val LOGIN = "login"
+    const val DASHBOARD = "dashboard"
+    const val CADASTRO_MEDICAMENTO = "cadastro_medicamento"
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,45 +26,40 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MedSafeSeniorTheme {
-                Scaffold { innerPadding ->
-                    WelcomeScreen(modifier = Modifier.padding(innerPadding))
-                }
+                MedSafeSeniorApp()
             }
         }
     }
 }
 
 /**
- * Tela inicial provisoria: confirma que o projeto Android esta configurado (Gradle,
- * tema Compose de alto contraste). O Dashboard Diario de verdade entra na Entrega 3.
+ * Navegacao entre as telas da Entrega 3: Login/Cadastro -> Dashboard -> Cadastro de
+ * Medicamento. Ainda sem autenticacao ou persistencia reais — isso entra com o
+ * Retrofit e o Spring Security na Entrega 4.
  */
 @Composable
-fun WelcomeScreen(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = stringResource(R.string.welcome_title),
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Text(
-            text = stringResource(R.string.welcome_subtitle),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(top = 16.dp),
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun WelcomeScreenPreview() {
-    MedSafeSeniorTheme {
-        WelcomeScreen()
+fun MedSafeSeniorApp(navController: NavHostController = rememberNavController()) {
+    NavHost(navController = navController, startDestination = Rotas.LOGIN) {
+        composable(Rotas.LOGIN) {
+            LoginScreen(
+                onEntrar = {
+                    navController.navigate(Rotas.DASHBOARD) {
+                        popUpTo(Rotas.LOGIN) { inclusive = true }
+                    }
+                },
+            )
+        }
+        composable(Rotas.DASHBOARD) {
+            DashboardScreen(
+                nomeUsuario = "Maria",
+                onAdicionarMedicamento = { navController.navigate(Rotas.CADASTRO_MEDICAMENTO) },
+            )
+        }
+        composable(Rotas.CADASTRO_MEDICAMENTO) {
+            CadastroMedicamentoScreen(
+                onVoltar = { navController.popBackStack() },
+                onSalvar = { navController.popBackStack() },
+            )
+        }
     }
 }
