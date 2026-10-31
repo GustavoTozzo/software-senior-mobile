@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -51,13 +52,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.medsafe.mobile.ui.components.CampoDeTexto
 import com.medsafe.mobile.ui.components.MensagemDeErro
 import com.medsafe.mobile.ui.components.OpcaoSelecionavel
+import com.medsafe.mobile.ui.scanner.BarcodeScannerScreen
 import com.medsafe.mobile.ui.theme.MedSafeOnSuccessContainer
 import com.medsafe.mobile.ui.theme.MedSafeSuccessContainer
 import com.medsafe.mobile.ui.viewmodel.CadastroMedicamentoViewModel
 import com.medsafe.mobile.ui.viewmodel.Frequencia
 import com.medsafe.mobile.ui.viewmodel.rememberViewModelFactory
 
-/** Cadastro de medicamento: nome, codigo de barras (digitado), estoque, frequencia e horarios. */
+/** Cadastro de medicamento: nome, codigo de barras (digitado ou lido pela camera), estoque, frequencia e horarios. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CadastroMedicamentoScreen(
@@ -67,6 +69,7 @@ fun CadastroMedicamentoScreen(
     viewModel: CadastroMedicamentoViewModel = viewModel(factory = rememberViewModelFactory()),
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    var escaneando by remember { mutableStateOf(false) }
     val contexto = LocalContext.current
 
     LaunchedEffect(estado.salvo) {
@@ -74,6 +77,18 @@ fun CadastroMedicamentoScreen(
             Toast.makeText(contexto, "Remédio salvo", Toast.LENGTH_SHORT).show()
             aoSalvar()
         }
+    }
+
+    if (escaneando) {
+        BarcodeScannerScreen(
+            aoLerCodigo = { codigo ->
+                viewModel.alterarCodigoBarras(codigo)
+                escaneando = false
+            },
+            aoFechar = { escaneando = false },
+            modifier = modifier,
+        )
+        return
     }
 
     Scaffold(
@@ -148,6 +163,24 @@ fun CadastroMedicamentoScreen(
                     tipoTeclado = KeyboardType.Number,
                     erro = estado.errosPorCampo["codigoBarras"],
                 )
+                OutlinedButton(
+                    onClick = { escaneando = true },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = MedSafeSuccessContainer,
+                        contentColor = MedSafeOnSuccessContainer,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                ) {
+                    Icon(Icons.Filled.QrCodeScanner, contentDescription = null)
+                    Text(
+                        text = "Escanear código de barras",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
