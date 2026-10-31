@@ -1,14 +1,21 @@
 package com.medsafe.mobile
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.medsafe.mobile.ui.components.DestinoPrincipal
 import com.medsafe.mobile.ui.screens.CadastroMedicamentoScreen
 import com.medsafe.mobile.ui.screens.DashboardScreen
 import com.medsafe.mobile.ui.screens.LoginScreen
@@ -33,16 +40,40 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Navegacao entre as telas da Entrega 3: Login/Cadastro -> Dashboard -> Cadastro de
- * Medicamento. Ainda sem autenticacao ou persistencia reais — isso entra com o
- * Retrofit e o Spring Security na Entrega 4.
+ * Navegacao do app: Login -> Dashboard -> Cadastro de Medicamento.
+ * Quem esta logado entra direto no Dashboard; ao sair (ou quando o servidor recusa o token
+ * expirado) a pilha e limpa e o app volta para o Login.
  */
 @Composable
 fun MedSafeSeniorApp(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = Rotas.LOGIN) {
+    val contexto = LocalContext.current
+    val sessionStore = remember { (contexto.applicationContext as MedSafeApp).container.sessionStore }
+    val sessao by sessionStore.sessao.collectAsStateWithLifecycle()
+    val destinoInicial = remember { if (sessionStore.sessao.value != null) Rotas.DASHBOARD else Rotas.LOGIN }
+
+    LaunchedEffect(sessao) {
+        if (sessao == null && navController.currentDestination?.route != Rotas.LOGIN) {
+            navController.navigate(Rotas.LOGIN) {
+                popUpTo(navController.graph.id) { inclusive = true }
+            }
+        }
+    }
+
+    val aoNavegar: (DestinoPrincipal) -> Unit = { destino ->
+        when (destino) {
+            DestinoPrincipal.INICIO -> navController.navigate(Rotas.DASHBOARD) {
+                popUpTo(Rotas.DASHBOARD)
+                launchSingleTop = true
+            }
+            DestinoPrincipal.REMEDIOS, DestinoPrincipal.HISTORICO, DestinoPrincipal.FARMACIAS ->
+                Toast.makeText(contexto, "Esta tela chega nas próximas entregas", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    NavHost(navController = navController, startDestination = destinoInicial) {
         composable(Rotas.LOGIN) {
             LoginScreen(
-                onEntrar = {
+                aoAutenticar = {
                     navController.navigate(Rotas.DASHBOARD) {
                         popUpTo(Rotas.LOGIN) { inclusive = true }
                     }
@@ -51,14 +82,14 @@ fun MedSafeSeniorApp(navController: NavHostController = rememberNavController())
         }
         composable(Rotas.DASHBOARD) {
             DashboardScreen(
-                nomeUsuario = "Maria",
-                onAdicionarMedicamento = { navController.navigate(Rotas.CADASTRO_MEDICAMENTO) },
+                aoAdicionarMedicamento = { navController.navigate(Rotas.CADASTRO_MEDICAMENTO) },
+                aoNavegar = aoNavegar,
             )
         }
         composable(Rotas.CADASTRO_MEDICAMENTO) {
             CadastroMedicamentoScreen(
-                onVoltar = { navController.popBackStack() },
-                onSalvar = { navController.popBackStack() },
+                aoVoltar = { navController.popBackStack() },
+                aoSalvar = { navController.popBackStack() },
             )
         }
     }

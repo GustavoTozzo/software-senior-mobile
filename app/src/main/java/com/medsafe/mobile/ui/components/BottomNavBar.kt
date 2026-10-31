@@ -16,64 +16,41 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 
-enum class DestinoPrincipal(val rotulo: String) {
-    INICIO("Início"),
-    REMEDIOS("Remédios"),
-    HISTORICO("Histórico"),
-    FARMACIAS("Farmácias"),
+enum class DestinoPrincipal(val rotulo: String, val icone: ImageVector) {
+    INICIO("Início", Icons.Filled.Home),
+    REMEDIOS("Remédios", Icons.Filled.Medication),
+    HISTORICO("Histórico", Icons.Filled.DateRange),
+    FARMACIAS("Farmácias", Icons.Filled.LocationOn),
 }
 
-/**
- * Barra inferior compartilhada. Somente INICIO esta implementado nesta entrega;
- * os demais destinos entram nas proximas entregas (Historico, Farmacias/estoque).
- */
+/** Barra inferior compartilhada entre as telas principais. */
 @Composable
 fun BottomNavBar(
     destinoAtual: DestinoPrincipal,
+    aoNavegar: (DestinoPrincipal) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         HorizontalDivider()
         NavigationBar(containerColor = MaterialTheme.colorScheme.background) {
-            NavigationBarItem(
-                selected = destinoAtual == DestinoPrincipal.INICIO,
-                onClick = { },
-                icon = { Icon(Icons.Filled.Home, contentDescription = null) },
-                label = { Text(DestinoPrincipal.INICIO.rotulo, textAlign = TextAlign.Center) },
-                colors = navBarColors(),
-            )
-            NavigationBarItem(
-                selected = destinoAtual == DestinoPrincipal.REMEDIOS,
-                onClick = { },
-                icon = { Icon(Icons.Filled.Medication, contentDescription = null) },
-                label = { Text(DestinoPrincipal.REMEDIOS.rotulo, textAlign = TextAlign.Center) },
-                colors = navBarColors(),
-            )
-            NavigationBarItem(
-                selected = destinoAtual == DestinoPrincipal.HISTORICO,
-                onClick = { },
-                icon = { Icon(Icons.Filled.DateRange, contentDescription = null) },
-                label = { Text(DestinoPrincipal.HISTORICO.rotulo, textAlign = TextAlign.Center) },
-                colors = navBarColors(),
-            )
-            NavigationBarItem(
-                selected = destinoAtual == DestinoPrincipal.FARMACIAS,
-                onClick = { },
-                icon = { Icon(Icons.Filled.LocationOn, contentDescription = null) },
-                label = { Text(DestinoPrincipal.FARMACIAS.rotulo, textAlign = TextAlign.Center) },
-                colors = navBarColors(),
-            )
+            DestinoPrincipal.entries.forEach { destino ->
+                NavigationBarItem(
+                    selected = destino == destinoAtual,
+                    onClick = { aoNavegar(destino) },
+                    icon = { Icon(destino.icone, contentDescription = null) },
+                    label = { Text(destino.rotulo, textAlign = TextAlign.Center) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        indicatorColor = MaterialTheme.colorScheme.surfaceVariant,
+                    ),
+                )
+            }
         }
     }
 }
-
-@Composable
-private fun navBarColors() = NavigationBarItemDefaults.colors(
-    selectedIconColor = MaterialTheme.colorScheme.primary,
-    selectedTextColor = MaterialTheme.colorScheme.primary,
-    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    indicatorColor = MaterialTheme.colorScheme.surfaceVariant,
-)
