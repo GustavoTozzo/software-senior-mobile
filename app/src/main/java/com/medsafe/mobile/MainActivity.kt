@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import com.medsafe.mobile.ui.components.DestinoPrincipal
 import com.medsafe.mobile.ui.screens.CadastroMedicamentoScreen
 import com.medsafe.mobile.ui.screens.DashboardScreen
+import com.medsafe.mobile.ui.screens.HistoricoScreen
 import com.medsafe.mobile.ui.screens.LoginScreen
 import com.medsafe.mobile.ui.theme.MedSafeSeniorTheme
 
@@ -25,6 +26,7 @@ private object Rotas {
     const val LOGIN = "login"
     const val DASHBOARD = "dashboard"
     const val CADASTRO_MEDICAMENTO = "cadastro_medicamento"
+    const val HISTORICO = "historico"
 }
 
 class MainActivity : ComponentActivity() {
@@ -40,7 +42,7 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Navegacao do app: Login -> Dashboard -> Cadastro de Medicamento.
+ * Navegacao do app: Login -> Dashboard <-> Historico, e Dashboard -> Cadastro de Medicamento.
  * Quem esta logado entra direto no Dashboard; ao sair (ou quando o servidor recusa o token
  * expirado) a pilha e limpa e o app volta para o Login.
  */
@@ -65,7 +67,11 @@ fun MedSafeSeniorApp(navController: NavHostController = rememberNavController())
                 popUpTo(Rotas.DASHBOARD)
                 launchSingleTop = true
             }
-            DestinoPrincipal.REMEDIOS, DestinoPrincipal.HISTORICO, DestinoPrincipal.FARMACIAS ->
+            DestinoPrincipal.HISTORICO -> navController.navigate(Rotas.HISTORICO) {
+                popUpTo(Rotas.DASHBOARD)
+                launchSingleTop = true
+            }
+            DestinoPrincipal.REMEDIOS, DestinoPrincipal.FARMACIAS ->
                 Toast.makeText(contexto, "Esta tela chega nas próximas entregas", Toast.LENGTH_SHORT).show()
         }
     }
@@ -91,6 +97,9 @@ fun MedSafeSeniorApp(navController: NavHostController = rememberNavController())
                 aoVoltar = { navController.popBackStack() },
                 aoSalvar = { navController.popBackStack() },
             )
+        }
+        composable(Rotas.HISTORICO) {
+            HistoricoScreen(aoNavegar = aoNavegar)
         }
     }
 }
