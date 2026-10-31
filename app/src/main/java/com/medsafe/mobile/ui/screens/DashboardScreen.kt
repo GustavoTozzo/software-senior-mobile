@@ -1,5 +1,10 @@
 package com.medsafe.mobile.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,8 +42,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.medsafe.mobile.model.Dose
@@ -75,9 +82,17 @@ fun DashboardScreen(
     val sessao by viewModel.sessao.collectAsStateWithLifecycle()
     var confirmandoSaida by remember { mutableStateOf(false) }
 
+    val contexto = LocalContext.current
+    val pedirPermissaoDeAvisos = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     LaunchedEffect(Unit) {
         viewModel.carregar()
+        // Android 13+: os avisos na hora do remedio dependem desta permissao.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(contexto, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            pedirPermissaoDeAvisos.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     Scaffold(

@@ -2,6 +2,7 @@ package com.medsafe.mobile.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.medsafe.mobile.alarmes.AlarmScheduler
 import com.medsafe.mobile.data.MedSafeRepository
 import com.medsafe.mobile.data.Resultado
 import com.medsafe.mobile.model.Dose
@@ -25,6 +26,7 @@ data class DashboardUiState(
 
 class DashboardViewModel(
     private val repositorio: MedSafeRepository,
+    private val alarmes: AlarmScheduler,
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(DashboardUiState())
@@ -32,7 +34,7 @@ class DashboardViewModel(
 
     val sessao: StateFlow<Sessao?> get() = repositorio.sessao
 
-    /** Busca as doses de hoje e os medicamentos com estoque baixo. */
+    /** Busca as doses de hoje e os medicamentos e, com eles, atualiza os alarmes do celular. */
     fun carregar(mostrarCarregando: Boolean = true) {
         viewModelScope.launch {
             _estado.update { it.copy(carregando = mostrarCarregando || it.doses.isEmpty(), erro = null) }
@@ -49,6 +51,7 @@ class DashboardViewModel(
             when (val medicamentos = repositorio.medicamentos()) {
                 is Resultado.Sucesso -> {
                     _estado.update { it.copy(estoqueBaixo = medicamentos.dados.filter { m -> m.estoqueBaixo }) }
+                    alarmes.reagendar(medicamentos.dados)
                 }
                 is Resultado.Erro -> _estado.update { it.copy(erro = medicamentos.mensagem) }
             }
@@ -76,6 +79,7 @@ class DashboardViewModel(
     }
 
     fun sair() {
+        alarmes.cancelarTodos()
         repositorio.sair()
     }
 }

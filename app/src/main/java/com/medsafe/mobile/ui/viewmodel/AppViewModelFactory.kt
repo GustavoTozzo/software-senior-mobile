@@ -15,7 +15,7 @@ class AppViewModelFactory(private val container: AppContainer) : ViewModelProvid
         modelClass.isAssignableFrom(AuthViewModel::class.java) ->
             AuthViewModel(container.repository) as T
         modelClass.isAssignableFrom(DashboardViewModel::class.java) ->
-            DashboardViewModel(container.repository) as T
+            DashboardViewModel(container.repository, container.alarmes) as T
         modelClass.isAssignableFrom(CadastroMedicamentoViewModel::class.java) ->
             CadastroMedicamentoViewModel(container.repository) as T
         modelClass.isAssignableFrom(HistoricoViewModel::class.java) ->
