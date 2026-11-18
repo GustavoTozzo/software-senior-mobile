@@ -14,6 +14,8 @@ data class Medicamento(
     val codigoBarras: String?,
     val quantidade: Int,
     val estoqueBaixo: Boolean,
+    /** Dias que o estoque cobre no ritmo das doses; null quando nao ha horarios para estimar. */
+    val diasRestantes: Int?,
     val frequencia: String,
     val horarios: List<String>,
 )

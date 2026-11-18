@@ -24,6 +24,12 @@ interface MedSafeApi {
     @POST("api/medicamentos")
     suspend fun criarMedicamento(@Body corpo: MedicamentoRequest): Response<MedicamentoResponse>
 
+    @PUT("api/medicamentos/{id}")
+    suspend fun atualizarMedicamento(
+        @Path("id") id: Long,
+        @Body corpo: MedicamentoRequest,
+    ): Response<MedicamentoResponse>
+
     @GET("api/farmacias")
     suspend fun farmacias(): Response<List<FarmaciaResponse>>
 

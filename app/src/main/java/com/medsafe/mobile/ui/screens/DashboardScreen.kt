@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,17 +45,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.medsafe.mobile.model.Dose
+import com.medsafe.mobile.model.Estoque
+import com.medsafe.mobile.model.Farmacia
 import com.medsafe.mobile.model.Medicamento
 import com.medsafe.mobile.model.StatusDose
 import com.medsafe.mobile.ui.components.BottomNavBar
+import com.medsafe.mobile.ui.components.CampoDeTexto
 import com.medsafe.mobile.ui.components.Carregando
 import com.medsafe.mobile.ui.components.DestinoPrincipal
 import com.medsafe.mobile.ui.components.MensagemDeErro
+import com.medsafe.mobile.ui.components.abrirWhatsApp
 import com.medsafe.mobile.ui.theme.MedSafeAccent
 import com.medsafe.mobile.ui.theme.MedSafeOnSuccessContainer
 import com.medsafe.mobile.ui.theme.MedSafeOnWarningContainer
@@ -81,6 +87,7 @@ fun DashboardScreen(
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val sessao by viewModel.sessao.collectAsStateWithLifecycle()
     var confirmandoSaida by remember { mutableStateOf(false) }
+    var medicamentoParaRepor by remember { mutableStateOf<Medicamento?>(null) }
 
     val contexto = LocalContext.current
     val pedirPermissaoDeAvisos = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -169,11 +176,31 @@ fun DashboardScreen(
                         )
                     }
                     items(estado.estoqueBaixo, key = { "estoque-${it.id}" }) { medicamento ->
-                        CartaoDeEstoqueBaixo(medicamento)
+                        CartaoDeEstoqueBaixo(
+                            medicamento = medicamento,
+                            farmaciaPreferida = estado.farmaciaPreferida,
+                            repondo = estado.reposicaoEmAndamento == medicamento.id,
+                            aoPedirNoWhatsApp = { farmacia ->
+                                contexto.abrirWhatsApp(Estoque.linkDoPedido(farmacia, medicamento.nome))
+                            },
+                            aoCadastrarFarmacia = { aoNavegar(DestinoPrincipal.CONTATOS) },
+                            aoRepor = { medicamentoParaRepor = medicamento },
+                        )
                     }
                 }
             }
         }
+    }
+
+    medicamentoParaRepor?.let { medicamento ->
+        DialogoDeReposicao(
+            medicamento = medicamento,
+            aoConfirmar = { unidades ->
+                medicamentoParaRepor = null
+                viewModel.reporEstoque(medicamento, unidades)
+            },
+            aoCancelar = { medicamentoParaRepor = null },
+        )
     }
 
     if (confirmandoSaida) {
@@ -292,22 +319,89 @@ private fun CartaoDeDose(
     }
 }
 
+/** Aviso de reposicao: quanto resta (em dias, pelo ritmo das doses), pedido por WhatsApp e registro da compra. */
 @Composable
-private fun CartaoDeEstoqueBaixo(medicamento: Medicamento) {
+private fun CartaoDeEstoqueBaixo(
+    medicamento: Medicamento,
+    farmaciaPreferida: Farmacia?,
+    repondo: Boolean,
+    aoPedirNoWhatsApp: (Farmacia) -> Unit,
+    aoCadastrarFarmacia: () -> Unit,
+    aoRepor: () -> Unit,
+) {
     Surface(color = MedSafeWarningContainer, shape = RoundedCornerShape(16.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(imageVector = Icons.Filled.WarningAmber, contentDescription = null, tint = MedSafeOnWarningContainer)
-            Text(
-                text = "${medicamento.nome}: restam ${medicamento.quantidade} " +
-                    if (medicamento.quantidade == 1) "unidade" else "unidades",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = MedSafeOnWarningContainer,
-                modifier = Modifier.padding(start = 16.dp),
-            )
+        Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(imageVector = Icons.Filled.WarningAmber, contentDescription = null, tint = MedSafeOnWarningContainer)
+                Column(modifier = Modifier.padding(start = 16.dp)) {
+                    Text(
+                        text = medicamento.nome,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MedSafeOnWarningContainer,
+                    )
+                    Text(
+                        text = Estoque.descricao(medicamento.quantidade, medicamento.diasRestantes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MedSafeOnWarningContainer,
+                    )
+                }
+            }
+
+            if (repondo) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(32.dp), strokeWidth = 3.dp)
+                }
+            } else {
+                if (farmaciaPreferida != null) {
+                    Button(
+                        onClick = { aoPedirNoWhatsApp(farmaciaPreferida) },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                    ) {
+                        Text("Pedir na ${farmaciaPreferida.nome} (WhatsApp)", style = MaterialTheme.typography.labelLarge)
+                    }
+                } else {
+                    OutlinedButton(onClick = aoCadastrarFarmacia, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                        Text("Cadastrar minha farmácia", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+                OutlinedButton(onClick = aoRepor, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                    Text("Já comprei", style = MaterialTheme.typography.labelLarge)
+                }
+            }
         }
     }
+}
+
+@Composable
+private fun DialogoDeReposicao(
+    medicamento: Medicamento,
+    aoConfirmar: (Int) -> Unit,
+    aoCancelar: () -> Unit,
+) {
+    var texto by remember { mutableStateOf("30") }
+    var mostrarErro by remember { mutableStateOf(false) }
+    val unidades = Estoque.unidadesDaReposicao(texto)
+
+    AlertDialog(
+        onDismissRequest = aoCancelar,
+        title = { Text("Já comprou ${medicamento.nome}?") },
+        text = {
+            CampoDeTexto(
+                rotulo = "Quantas unidades vieram na compra?",
+                valor = texto,
+                aoAlterar = { texto = it.filter { c -> c.isDigit() }.take(4); mostrarErro = false },
+                tipoTeclado = KeyboardType.Number,
+                erro = if (mostrarErro && unidades == null) "Digite um número de 1 a ${Estoque.MAXIMO_POR_REPOSICAO}" else null,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { if (unidades != null) aoConfirmar(unidades) else mostrarErro = true }) {
+                Text("Somar ao estoque", style = MaterialTheme.typography.labelLarge)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = aoCancelar) { Text("Cancelar", style = MaterialTheme.typography.labelLarge) }
+        },
+    )
 }

@@ -45,6 +45,7 @@ data class MedicamentoResponse(
     val codigoBarras: String?,
     val quantidadeAtual: Int,
     val estoqueBaixo: Boolean,
+    val diasRestantes: Int?,
     val doseFrequencia: String,
     val horariosProgramados: String,
 )

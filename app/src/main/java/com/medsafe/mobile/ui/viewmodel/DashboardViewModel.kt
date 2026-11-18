@@ -6,6 +6,7 @@ import com.medsafe.mobile.alarmes.AlarmScheduler
 import com.medsafe.mobile.data.MedSafeRepository
 import com.medsafe.mobile.data.Resultado
 import com.medsafe.mobile.model.Dose
+import com.medsafe.mobile.model.Farmacia
 import com.medsafe.mobile.model.Medicamento
 import com.medsafe.mobile.model.Sessao
 import com.medsafe.mobile.model.StatusDose
@@ -20,6 +21,9 @@ data class DashboardUiState(
     val carregando: Boolean = true,
     val doses: List<Dose> = emptyList(),
     val estoqueBaixo: List<Medicamento> = emptyList(),
+    /** Farmacia que recebe o pedido de reposicao; null se a pessoa ainda nao cadastrou nenhuma. */
+    val farmaciaPreferida: Farmacia? = null,
+    val reposicaoEmAndamento: Long? = null,
     val erro: String? = null,
     val doseEmAtualizacao: Long? = null,
 )
@@ -50,12 +54,36 @@ class DashboardViewModel(
 
             when (val medicamentos = repositorio.medicamentos()) {
                 is Resultado.Sucesso -> {
-                    _estado.update { it.copy(estoqueBaixo = medicamentos.dados.filter { m -> m.estoqueBaixo }) }
+                    val emFalta = medicamentos.dados.filter { m -> m.estoqueBaixo }
+                    _estado.update { it.copy(estoqueBaixo = emFalta) }
                     alarmes.reagendar(medicamentos.dados)
+                    if (emFalta.isNotEmpty()) carregarFarmaciaPreferida()
                 }
                 is Resultado.Erro -> _estado.update { it.copy(erro = medicamentos.mensagem) }
             }
             _estado.update { it.copy(carregando = false) }
+        }
+    }
+
+    /** Sem a farmacia o aviso continua valendo; so nao oferece o pedido por WhatsApp. */
+    private suspend fun carregarFarmaciaPreferida() {
+        when (val farmacias = repositorio.farmacias()) {
+            is Resultado.Sucesso -> _estado.update { it.copy(farmaciaPreferida = farmacias.dados.firstOrNull { f -> f.preferida }) }
+            is Resultado.Erro -> Unit
+        }
+    }
+
+    /** Soma as unidades compradas ao estoque e recarrega o Dashboard (o aviso some se o estoque voltou a folgar). */
+    fun reporEstoque(medicamento: Medicamento, unidades: Int) {
+        viewModelScope.launch {
+            _estado.update { it.copy(reposicaoEmAndamento = medicamento.id, erro = null) }
+            when (val resultado = repositorio.reporEstoque(medicamento, unidades)) {
+                is Resultado.Sucesso -> {
+                    _estado.update { it.copy(reposicaoEmAndamento = null) }
+                    carregar(mostrarCarregando = false)
+                }
+                is Resultado.Erro -> _estado.update { it.copy(reposicaoEmAndamento = null, erro = resultado.mensagem) }
+            }
         }
     }
 

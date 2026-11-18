@@ -79,6 +79,21 @@ class MedSafeRepository(
         return chamar { api.criarMedicamento(corpo) }.mapear { it.paraModelo() }
     }
 
+    /** Soma as unidades compradas ao estoque do medicamento (o servidor recalcula os dias restantes). */
+    suspend fun reporEstoque(medicamento: Medicamento, unidades: Int): Resultado<Medicamento> {
+        val usuarioId = sessionStore.sessao.value?.usuarioId
+            ?: return Resultado.Erro("Sessão expirada. Entre novamente.", 401)
+        val corpo = MedicamentoRequest(
+            usuarioId = usuarioId,
+            nomeComercial = medicamento.nome,
+            codigoBarras = medicamento.codigoBarras,
+            quantidadeAtual = medicamento.quantidade + unidades,
+            doseFrequencia = medicamento.frequencia,
+            horariosProgramados = medicamento.horarios.joinToString(","),
+        )
+        return chamar { api.atualizarMedicamento(medicamento.id, corpo) }.mapear { it.paraModelo() }
+    }
+
     suspend fun farmacias(): Resultado<List<Farmacia>> =
         chamar { api.farmacias() }.mapear { lista -> lista.map { it.paraModelo() } }
 
@@ -168,6 +183,7 @@ class MedSafeRepository(
         codigoBarras = codigoBarras,
         quantidade = quantidadeAtual,
         estoqueBaixo = estoqueBaixo,
+        diasRestantes = diasRestantes,
         frequencia = doseFrequencia,
         horarios = horariosProgramados.split(",").map { it.trim() }.filter { it.isNotEmpty() },
     )
