@@ -13,6 +13,7 @@ import com.medsafe.mobile.data.api.MedSafeApi
 import com.medsafe.mobile.data.api.MedicamentoRequest
 import com.medsafe.mobile.data.api.MedicamentoResponse
 import com.medsafe.mobile.data.api.RegistroRequest
+import com.medsafe.mobile.data.api.RetiradaRequest
 import com.medsafe.mobile.data.api.StatusRequest
 import com.medsafe.mobile.model.ContatoEmergencia
 import com.medsafe.mobile.model.Dose
@@ -65,6 +66,9 @@ class MedSafeRepository(
         quantidade: Int,
         frequencia: String,
         horarios: List<String>,
+        farmaciaPopular: Boolean = false,
+        ultimaRetirada: LocalDate? = null,
+        intervaloRetiradaDias: Int = 30,
     ): Resultado<Medicamento> {
         val usuarioId = sessionStore.sessao.value?.usuarioId
             ?: return Resultado.Erro("Sessão expirada. Entre novamente.", 401)
@@ -75,6 +79,9 @@ class MedSafeRepository(
             quantidadeAtual = quantidade,
             doseFrequencia = frequencia,
             horariosProgramados = horarios.joinToString(","),
+            farmaciaPopular = farmaciaPopular,
+            ultimaRetirada = ultimaRetirada?.toString(),
+            intervaloRetiradaDias = intervaloRetiradaDias,
         )
         return chamar { api.criarMedicamento(corpo) }.mapear { it.paraModelo() }
     }
@@ -90,9 +97,17 @@ class MedSafeRepository(
             quantidadeAtual = medicamento.quantidade + unidades,
             doseFrequencia = medicamento.frequencia,
             horariosProgramados = medicamento.horarios.joinToString(","),
+            farmaciaPopular = medicamento.farmaciaPopular,
+            ultimaRetirada = medicamento.ultimaRetirada?.toString(),
+            intervaloRetiradaDias = medicamento.intervaloRetiradaDias,
         )
         return chamar { api.atualizarMedicamento(medicamento.id, corpo) }.mapear { it.paraModelo() }
     }
+
+    /** Registra a retirada na Farmacia Popular (data do aparelho) e soma as unidades recebidas ao estoque. */
+    suspend fun registrarRetirada(medicamento: Medicamento, data: LocalDate, unidades: Int?): Resultado<Medicamento> =
+        chamar { api.registrarRetirada(medicamento.id, RetiradaRequest(data.toString(), unidades)) }
+            .mapear { it.paraModelo() }
 
     suspend fun farmacias(): Resultado<List<Farmacia>> =
         chamar { api.farmacias() }.mapear { lista -> lista.map { it.paraModelo() } }
@@ -186,6 +201,10 @@ class MedSafeRepository(
         diasRestantes = diasRestantes,
         frequencia = doseFrequencia,
         horarios = horariosProgramados.split(",").map { it.trim() }.filter { it.isNotEmpty() },
+        farmaciaPopular = farmaciaPopular,
+        ultimaRetirada = ultimaRetirada?.let { LocalDate.parse(it) },
+        intervaloRetiradaDias = intervaloRetiradaDias,
+        proximaRetirada = proximaRetirada?.let { LocalDate.parse(it) },
     )
 
     private fun FarmaciaResponse.paraModelo() = Farmacia(

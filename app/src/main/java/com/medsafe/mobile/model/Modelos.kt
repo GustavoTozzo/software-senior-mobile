@@ -1,5 +1,6 @@
 package com.medsafe.mobile.model
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 enum class StatusDose {
@@ -18,7 +19,14 @@ data class Medicamento(
     val diasRestantes: Int?,
     val frequencia: String,
     val horarios: List<String>,
-)
+    /** Retirado na Farmacia Popular: o app lembra quando o proximo fornecimento e liberado. */
+    val farmaciaPopular: Boolean = false,
+    val ultimaRetirada: LocalDate? = null,
+    val intervaloRetiradaDias: Int = 30,
+    val proximaRetirada: LocalDate? = null,
+) {
+    val dosesPorDia: Int get() = horarios.size
+}
 
 data class Farmacia(
     val id: Long,

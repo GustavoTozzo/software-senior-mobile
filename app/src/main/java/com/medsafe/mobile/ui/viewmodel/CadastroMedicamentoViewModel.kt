@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.medsafe.mobile.data.MedSafeRepository
 import com.medsafe.mobile.data.Resultado
+import com.medsafe.mobile.model.FarmaciaPopular
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 /** Quantas vezes ao dia o remedio e tomado; ja sugere os horarios mais comuns. */
 enum class Frequencia(val rotulo: String, val horariosSugeridos: List<String>) {
@@ -23,6 +25,9 @@ data class CadastroUiState(
     val quantidade: Int = 30,
     val frequencia: Frequencia = Frequencia.UMA_VEZ,
     val horarios: List<String> = Frequencia.UMA_VEZ.horariosSugeridos,
+    val farmaciaPopular: Boolean = false,
+    val ultimaRetirada: LocalDate = LocalDate.now(),
+    val prazoEmDias: Int = FarmaciaPopular.PRAZOS_EM_DIAS.first(),
     val salvando: Boolean = false,
     val erro: String? = null,
     val errosPorCampo: Map<String, String> = emptyMap(),
@@ -50,6 +55,12 @@ class CadastroMedicamentoViewModel(private val repositorio: MedSafeRepository) :
         if (horario in it.horarios) it else it.copy(horarios = (it.horarios + horario).sorted(), errosPorCampo = it.errosPorCampo - "horariosProgramados")
     }
 
+    fun alternarFarmaciaPopular(ativa: Boolean) = _estado.update { it.copy(farmaciaPopular = ativa, errosPorCampo = it.errosPorCampo - "ultimaRetirada") }
+
+    fun escolherUltimaRetirada(data: LocalDate) = _estado.update { it.copy(ultimaRetirada = data, errosPorCampo = it.errosPorCampo - "ultimaRetirada") }
+
+    fun escolherPrazo(dias: Int) = _estado.update { it.copy(prazoEmDias = dias) }
+
     fun removerHorario(horario: String) = _estado.update { it.copy(horarios = it.horarios - horario) }
 
     fun salvar() {
@@ -57,6 +68,9 @@ class CadastroMedicamentoViewModel(private val repositorio: MedSafeRepository) :
         val problemas = mutableMapOf<String, String>()
         if (atual.nome.isBlank()) problemas["nomeComercial"] = "Informe o nome do remédio"
         if (atual.horarios.isEmpty()) problemas["horariosProgramados"] = "Adicione pelo menos um horário"
+        if (atual.farmaciaPopular && atual.ultimaRetirada.isAfter(LocalDate.now())) {
+            problemas["ultimaRetirada"] = "A última retirada não pode ser uma data futura"
+        }
         if (problemas.isNotEmpty()) {
             _estado.update { it.copy(erro = null, errosPorCampo = problemas) }
             return
@@ -70,6 +84,9 @@ class CadastroMedicamentoViewModel(private val repositorio: MedSafeRepository) :
                 quantidade = atual.quantidade,
                 frequencia = atual.frequencia.rotulo,
                 horarios = atual.horarios,
+                farmaciaPopular = atual.farmaciaPopular,
+                ultimaRetirada = if (atual.farmaciaPopular) atual.ultimaRetirada else null,
+                intervaloRetiradaDias = atual.prazoEmDias,
             )
             when (resultado) {
                 is Resultado.Sucesso -> _estado.update { it.copy(salvando = false, salvo = true) }

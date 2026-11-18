@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.AlertDialog
@@ -57,6 +58,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.medsafe.mobile.model.Dose
 import com.medsafe.mobile.model.Estoque
 import com.medsafe.mobile.model.Farmacia
+import com.medsafe.mobile.model.FarmaciaPopular
 import com.medsafe.mobile.model.Medicamento
 import com.medsafe.mobile.model.StatusDose
 import com.medsafe.mobile.ui.components.BotoesDeEmergencia
@@ -94,6 +96,7 @@ fun DashboardScreen(
     val sessao by viewModel.sessao.collectAsStateWithLifecycle()
     var confirmandoSaida by remember { mutableStateOf(false) }
     var medicamentoParaRepor by remember { mutableStateOf<Medicamento?>(null) }
+    var medicamentoParaRetirar by remember { mutableStateOf<Medicamento?>(null) }
 
     val contexto = LocalContext.current
     val pedirPermissaoDeAvisos = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -177,6 +180,24 @@ fun DashboardScreen(
                     )
                 }
 
+                if (estado.retiradas.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Farmácia Popular",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.semantics { heading() },
+                        )
+                    }
+                    items(estado.retiradas, key = { "retirada-${it.id}" }) { medicamento ->
+                        CartaoDeRetirada(
+                            medicamento = medicamento,
+                            retirando = estado.retiradaEmAndamento == medicamento.id,
+                            aoRegistrar = { medicamentoParaRetirar = medicamento },
+                        )
+                    }
+                }
+
                 if (estado.estoqueBaixo.isNotEmpty()) {
                     item {
                         Text(
@@ -204,13 +225,30 @@ fun DashboardScreen(
     }
 
     medicamentoParaRepor?.let { medicamento ->
-        DialogoDeReposicao(
-            medicamento = medicamento,
+        DialogoDeUnidades(
+            titulo = "Já comprou ${medicamento.nome}?",
+            pergunta = "Quantas unidades vieram na compra?",
+            unidadesIniciais = 30,
+            textoDoBotao = "Somar ao estoque",
             aoConfirmar = { unidades ->
                 medicamentoParaRepor = null
                 viewModel.reporEstoque(medicamento, unidades)
             },
             aoCancelar = { medicamentoParaRepor = null },
+        )
+    }
+
+    medicamentoParaRetirar?.let { medicamento ->
+        DialogoDeUnidades(
+            titulo = "Retirou ${medicamento.nome}?",
+            pergunta = "Quantas unidades você recebeu?",
+            unidadesIniciais = FarmaciaPopular.unidadesSugeridas(medicamento.dosesPorDia, medicamento.intervaloRetiradaDias),
+            textoDoBotao = "Registrar retirada",
+            aoConfirmar = { unidades ->
+                medicamentoParaRetirar = null
+                viewModel.registrarRetirada(medicamento, unidades)
+            },
+            aoCancelar = { medicamentoParaRetirar = null },
         )
     }
 
@@ -405,21 +443,24 @@ private fun CartaoDeEstoqueBaixo(
 }
 
 @Composable
-private fun DialogoDeReposicao(
-    medicamento: Medicamento,
+private fun DialogoDeUnidades(
+    titulo: String,
+    pergunta: String,
+    unidadesIniciais: Int,
+    textoDoBotao: String,
     aoConfirmar: (Int) -> Unit,
     aoCancelar: () -> Unit,
 ) {
-    var texto by remember { mutableStateOf("30") }
+    var texto by remember { mutableStateOf(unidadesIniciais.toString()) }
     var mostrarErro by remember { mutableStateOf(false) }
     val unidades = Estoque.unidadesDaReposicao(texto)
 
     AlertDialog(
         onDismissRequest = aoCancelar,
-        title = { Text("Já comprou ${medicamento.nome}?") },
+        title = { Text(titulo) },
         text = {
             CampoDeTexto(
-                rotulo = "Quantas unidades vieram na compra?",
+                rotulo = pergunta,
                 valor = texto,
                 aoAlterar = { texto = it.filter { c -> c.isDigit() }.take(4); mostrarErro = false },
                 tipoTeclado = KeyboardType.Number,
@@ -428,11 +469,53 @@ private fun DialogoDeReposicao(
         },
         confirmButton = {
             TextButton(onClick = { if (unidades != null) aoConfirmar(unidades) else mostrarErro = true }) {
-                Text("Somar ao estoque", style = MaterialTheme.typography.labelLarge)
+                Text(textoDoBotao, style = MaterialTheme.typography.labelLarge)
             }
         },
         dismissButton = {
             TextButton(onClick = aoCancelar) { Text("Cancelar", style = MaterialTheme.typography.labelLarge) }
         },
     )
+}
+
+/** Proximo fornecimento da Farmacia Popular: quando e liberado e o botao para registrar a retirada. */
+@Composable
+private fun CartaoDeRetirada(medicamento: Medicamento, retirando: Boolean, aoRegistrar: () -> Unit) {
+    val proxima = medicamento.proximaRetirada ?: return
+    val dias = FarmaciaPopular.diasAteLiberar(LocalDate.now(), proxima)
+
+    Surface(color = MedSafeSuccessContainer, shape = RoundedCornerShape(16.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.semantics(mergeDescendants = true) {}) {
+                Icon(imageVector = Icons.Filled.Event, contentDescription = null, tint = MedSafeOnSuccessContainer)
+                Column(modifier = Modifier.padding(start = 16.dp)) {
+                    Text(
+                        text = medicamento.nome,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MedSafeOnSuccessContainer,
+                    )
+                    Text(
+                        text = FarmaciaPopular.descricao(dias, proxima),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MedSafeOnSuccessContainer,
+                    )
+                }
+            }
+            if (retirando) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(32.dp), strokeWidth = 3.dp)
+                }
+            } else {
+                Button(
+                    onClick = aoRegistrar,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).semantics {
+                        contentDescription = "Já retirei ${medicamento.nome} na Farmácia Popular"
+                    },
+                ) {
+                    Text("Já retirei", style = MaterialTheme.typography.labelLarge)
+                }
+            }
+        }
+    }
 }

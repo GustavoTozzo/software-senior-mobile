@@ -25,6 +25,6 @@ class MedSafeApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
-        Notificacoes.criarCanal(this)
+        Notificacoes.criarCanais(this)
     }
 }

@@ -36,6 +36,9 @@ data class MedicamentoRequest(
     val quantidadeAtual: Int,
     val doseFrequencia: String,
     val horariosProgramados: String,
+    val farmaciaPopular: Boolean? = null,
+    val ultimaRetirada: String? = null,
+    val intervaloRetiradaDias: Int? = null,
 )
 
 data class MedicamentoResponse(
@@ -48,6 +51,16 @@ data class MedicamentoResponse(
     val diasRestantes: Int?,
     val doseFrequencia: String,
     val horariosProgramados: String,
+    val farmaciaPopular: Boolean = false,
+    val ultimaRetirada: String? = null,
+    val intervaloRetiradaDias: Int = 30,
+    val proximaRetirada: String? = null,
+)
+
+/** Registro de uma retirada na Farmacia Popular: a data (do aparelho) e as unidades recebidas. */
+data class RetiradaRequest(
+    val data: String,
+    val unidades: Int?,
 )
 
 data class FarmaciaRequest(

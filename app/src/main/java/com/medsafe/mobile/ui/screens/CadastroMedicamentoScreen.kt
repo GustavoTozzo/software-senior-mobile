@@ -1,5 +1,6 @@
 package com.medsafe.mobile.ui.screens
 
+import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.horizontalScroll
@@ -50,7 +51,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.medsafe.mobile.model.FarmaciaPopular
 import com.medsafe.mobile.ui.components.CampoDeTexto
+import com.medsafe.mobile.ui.components.LinhaComChave
 import com.medsafe.mobile.ui.components.MensagemDeErro
 import com.medsafe.mobile.ui.components.OpcaoSelecionavel
 import com.medsafe.mobile.ui.scanner.BarcodeScannerScreen
@@ -59,6 +62,7 @@ import com.medsafe.mobile.ui.theme.MedSafeSuccessContainer
 import com.medsafe.mobile.ui.viewmodel.CadastroMedicamentoViewModel
 import com.medsafe.mobile.ui.viewmodel.Frequencia
 import com.medsafe.mobile.ui.viewmodel.rememberViewModelFactory
+import java.time.LocalDate
 
 /** Cadastro de medicamento: nome, codigo de barras (digitado ou lido pela camera), estoque, frequencia e horarios. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -254,6 +258,54 @@ fun CadastroMedicamentoScreen(
                 }
                 estado.errosPorCampo["horariosProgramados"]?.let {
                     Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
+                }
+            }
+
+            LinhaComChave(
+                titulo = "Retiro este remédio na Farmácia Popular",
+                descricao = "O app avisa quando o próximo fornecimento for liberado.",
+                ligada = estado.farmaciaPopular,
+                aoAlterar = viewModel::alternarFarmaciaPopular,
+            )
+            if (estado.farmaciaPopular) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Rotulo("Quando foi a última retirada?")
+                    OutlinedButton(
+                        onClick = {
+                            val atual = estado.ultimaRetirada
+                            DatePickerDialog(
+                                contexto,
+                                { _, ano, mes, dia -> viewModel.escolherUltimaRetirada(LocalDate.of(ano, mes + 1, dia)) },
+                                atual.year,
+                                atual.monthValue - 1,
+                                atual.dayOfMonth,
+                            ).apply { datePicker.maxDate = System.currentTimeMillis() }.show()
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    ) {
+                        Text(FarmaciaPopular.formatarData(estado.ultimaRetirada), style = MaterialTheme.typography.bodyLarge)
+                    }
+                    estado.errosPorCampo["ultimaRetirada"]?.let {
+                        Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
+                    }
+
+                    Rotulo("Prazo entre retiradas")
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                        FarmaciaPopular.PRAZOS_EM_DIAS.forEach { dias ->
+                            OpcaoSelecionavel(
+                                rotulo = "$dias dias",
+                                selecionado = estado.prazoEmDias == dias,
+                                aoSelecionar = { viewModel.escolherPrazo(dias) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                    Text(
+                        text = "Confirme o prazo certo com a sua farmácia.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }

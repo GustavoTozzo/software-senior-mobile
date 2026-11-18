@@ -8,6 +8,7 @@ import com.medsafe.mobile.data.PreferenciasStore
 import com.medsafe.mobile.data.Resultado
 import com.medsafe.mobile.model.Dose
 import com.medsafe.mobile.model.Farmacia
+import com.medsafe.mobile.model.FarmaciaPopular
 import com.medsafe.mobile.model.Medicamento
 import com.medsafe.mobile.model.Sessao
 import com.medsafe.mobile.model.StatusDose
@@ -25,6 +26,9 @@ data class DashboardUiState(
     /** Farmacia que recebe o pedido de reposicao; null se a pessoa ainda nao cadastrou nenhuma. */
     val farmaciaPreferida: Farmacia? = null,
     val reposicaoEmAndamento: Long? = null,
+    /** Remedios da Farmacia Popular cujo proximo fornecimento esta perto (ou ja foi liberado). */
+    val retiradas: List<Medicamento> = emptyList(),
+    val retiradaEmAndamento: Long? = null,
     val erro: String? = null,
     val doseEmAtualizacao: Long? = null,
 )
@@ -57,12 +61,18 @@ class DashboardViewModel(
             when (val medicamentos = repositorio.medicamentos()) {
                 is Resultado.Sucesso -> {
                     val emFalta = medicamentos.dados.filter { m -> m.estoqueBaixo }
-                    _estado.update { it.copy(estoqueBaixo = emFalta) }
-                    if (preferencias.preferencias.value.lembretesDeRemedio) {
-                        alarmes.reagendar(medicamentos.dados)
-                    } else {
-                        alarmes.cancelarTodos()
-                    }
+                    val hoje = LocalDate.now()
+                    val retiradas = medicamentos.dados
+                        .filter { m ->
+                            m.farmaciaPopular && m.proximaRetirada != null &&
+                                FarmaciaPopular.deveAvisar(FarmaciaPopular.diasAteLiberar(hoje, m.proximaRetirada))
+                        }
+                        .sortedBy { m -> m.proximaRetirada }
+                    _estado.update { it.copy(estoqueBaixo = emFalta, retiradas = retiradas) }
+
+                    val ajustes = preferencias.preferencias.value
+                    if (ajustes.lembretesDeRemedio) alarmes.reagendar(medicamentos.dados) else alarmes.cancelarLembretes()
+                    if (ajustes.lembretesDeRetirada) alarmes.reagendarRetiradas(medicamentos.dados) else alarmes.cancelarRetiradas()
                     if (emFalta.isNotEmpty()) carregarFarmaciaPreferida()
                 }
                 is Resultado.Erro -> _estado.update { it.copy(erro = medicamentos.mensagem) }
@@ -89,6 +99,20 @@ class DashboardViewModel(
                     carregar(mostrarCarregando = false)
                 }
                 is Resultado.Erro -> _estado.update { it.copy(reposicaoEmAndamento = null, erro = resultado.mensagem) }
+            }
+        }
+    }
+
+    /** Registra que a pessoa retirou o fornecimento na Farmacia Popular hoje e soma as unidades recebidas ao estoque. */
+    fun registrarRetirada(medicamento: Medicamento, unidades: Int) {
+        viewModelScope.launch {
+            _estado.update { it.copy(retiradaEmAndamento = medicamento.id, erro = null) }
+            when (val resultado = repositorio.registrarRetirada(medicamento, LocalDate.now(), unidades)) {
+                is Resultado.Sucesso -> {
+                    _estado.update { it.copy(retiradaEmAndamento = null) }
+                    carregar(mostrarCarregando = false)
+                }
+                is Resultado.Erro -> _estado.update { it.copy(retiradaEmAndamento = null, erro = resultado.mensagem) }
             }
         }
     }

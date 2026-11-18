@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.medsafe.mobile.model.TamanhoDoTexto
 import com.medsafe.mobile.model.TemaDoApp
+import com.medsafe.mobile.ui.components.LinhaComChave
 import com.medsafe.mobile.ui.components.MensagemDeErro
 import com.medsafe.mobile.ui.components.OpcaoSelecionavel
 import com.medsafe.mobile.ui.viewmodel.ConfiguracoesViewModel
@@ -128,6 +129,12 @@ fun ConfiguracoesScreen(
                 ligada = preferencias.lembretesDeRemedio,
                 aoAlterar = viewModel::alternarLembretesDeRemedio,
             )
+            LinhaComChave(
+                titulo = "Lembrete da Farmácia Popular",
+                descricao = "Um aviso no dia em que o próximo fornecimento é liberado.",
+                ligada = preferencias.lembretesDeRetirada,
+                aoAlterar = viewModel::alternarLembretesDeRetirada,
+            )
             aviso?.let { MensagemDeErro(it) }
 
             OutlinedButton(
@@ -161,25 +168,4 @@ private fun Titulo(texto: String, modifier: Modifier = Modifier) {
 @Composable
 private fun Rotulo(texto: String) {
     Text(text = texto, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onBackground)
-}
-
-/** Linha inteira clicavel (e lida pelo TalkBack como uma chave unica), com o titulo, a explicacao e o interruptor. */
-@Composable
-private fun LinhaComChave(titulo: String, descricao: String, ligada: Boolean, aoAlterar: (Boolean) -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(14.dp)) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 64.dp)
-                .toggleable(value = ligada, role = Role.Switch, onValueChange = aoAlterar)
-                .padding(16.dp),
-        ) {
-            Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                Text(titulo, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onBackground)
-                Text(descricao, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Switch(checked = ligada, onCheckedChange = null)
-        }
-    }
 }

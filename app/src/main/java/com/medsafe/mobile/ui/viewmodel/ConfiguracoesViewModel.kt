@@ -35,13 +35,29 @@ class ConfiguracoesViewModel(
         _aviso.value = null
         viewModelScope.launch {
             if (!ativos) {
-                alarmes.cancelarTodos()
+                alarmes.cancelarLembretes()
                 return@launch
             }
             when (val medicamentos = repositorio.medicamentos()) {
                 is Resultado.Sucesso -> alarmes.reagendar(medicamentos.dados)
                 is Resultado.Erro -> _aviso.value =
                     "Sem conexão agora: os lembretes voltam a funcionar assim que o app carregar seus remédios."
+            }
+        }
+    }
+
+    fun alternarLembretesDeRetirada(ativos: Boolean) {
+        preferenciasStore.alterarLembretesDeRetirada(ativos)
+        _aviso.value = null
+        viewModelScope.launch {
+            if (!ativos) {
+                alarmes.cancelarRetiradas()
+                return@launch
+            }
+            when (val medicamentos = repositorio.medicamentos()) {
+                is Resultado.Sucesso -> alarmes.reagendarRetiradas(medicamentos.dados)
+                is Resultado.Erro -> _aviso.value =
+                    "Sem conexão agora: os avisos voltam a funcionar assim que o app carregar seus remédios."
             }
         }
     }

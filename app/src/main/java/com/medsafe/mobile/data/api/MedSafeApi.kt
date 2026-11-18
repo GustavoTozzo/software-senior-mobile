@@ -30,6 +30,12 @@ interface MedSafeApi {
         @Body corpo: MedicamentoRequest,
     ): Response<MedicamentoResponse>
 
+    @POST("api/medicamentos/{id}/retirada")
+    suspend fun registrarRetirada(
+        @Path("id") id: Long,
+        @Body corpo: RetiradaRequest,
+    ): Response<MedicamentoResponse>
+
     @GET("api/farmacias")
     suspend fun farmacias(): Response<List<FarmaciaResponse>>
 
