@@ -142,7 +142,7 @@ class MedSafeRepository(
         chamar { api.historico(de.toString(), ate.toString()) }.mapear { lista -> lista.map { it.paraModelo() } }
 
     suspend fun atualizarStatus(doseId: Long, status: StatusDose): Resultado<Dose> =
-        chamar { api.atualizarStatus(doseId, StatusRequest(status.name)) }.mapear { it.paraModelo() }
+        chamar { api.atualizarStatus(doseId, StatusRequest(status.name, LocalDateTime.now().withNano(0).toString())) }.mapear { it.paraModelo() }
 
     private fun salvarSessao(auth: AuthResponse): Sessao {
         val sessao = Sessao(auth.token, auth.usuario.id, auth.usuario.nome)

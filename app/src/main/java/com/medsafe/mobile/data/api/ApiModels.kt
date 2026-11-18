@@ -100,8 +100,10 @@ data class HistoricoResponse(
     val status: String,
 )
 
+/** [realizadaEm] e a hora do aparelho (o servidor pode estar em outro fuso). */
 data class StatusRequest(
     val status: String,
+    val realizadaEm: String? = null,
 )
 
 /** Formato de erro devolvido pelo backend (GlobalExceptionHandler). */
