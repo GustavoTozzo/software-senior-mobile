@@ -27,6 +27,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -40,7 +48,7 @@ fun MensagemDeErro(texto: String, modifier: Modifier = Modifier) {
     Surface(
         color = MedSafeDangerContainer,
         shape = RoundedCornerShape(12.dp),
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
     ) {
         Text(
             text = texto,
@@ -53,7 +61,10 @@ fun MensagemDeErro(texto: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun Carregando(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier.fillMaxWidth().padding(32.dp).semantics { contentDescription = "Carregando" },
+        contentAlignment = Alignment.Center,
+    ) {
         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
     }
 }
@@ -72,7 +83,10 @@ fun OpcaoSelecionavel(
         contentColor = if (selecionado) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
         shape = RoundedCornerShape(12.dp),
         border = if (selecionado) null else BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
-        modifier = modifier.heightIn(min = 52.dp),
+        modifier = modifier.heightIn(min = 52.dp).semantics {
+            role = Role.RadioButton
+            selected = selecionado
+        },
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp)) {
             Text(text = rotulo, style = MaterialTheme.typography.bodyLarge)

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -116,7 +117,7 @@ fun CadastroMedicamentoScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(20.dp)
-                        .height(60.dp),
+                        .heightIn(min = 60.dp),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -172,7 +173,7 @@ fun CadastroMedicamentoScreen(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .heightIn(min = 56.dp),
                 ) {
                     Icon(Icons.Filled.QrCodeScanner, contentDescription = null)
                     Text(
@@ -195,7 +196,7 @@ fun CadastroMedicamentoScreen(
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .weight(1f)
-                            .height(56.dp),
+                            .heightIn(min = 56.dp),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
@@ -247,7 +248,7 @@ fun CadastroMedicamentoScreen(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
+                        .heightIn(min = 52.dp),
                 ) {
                     Text("+ Adicionar horário", style = MaterialTheme.typography.bodyLarge)
                 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,6 +33,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -82,6 +86,7 @@ fun ContatosScreen(
                         text = "Contatos",
                         style = MaterialTheme.typography.headlineLarge,
                         color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.semantics { heading() },
                     )
                     Text(
                         text = "Farmácias e familiares a um toque",
@@ -196,7 +201,7 @@ private fun TituloDaSecao(titulo: String, textoDoBotao: String, aoAdicionar: () 
             text = titulo,
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).semantics { heading() },
         )
         Button(onClick = aoAdicionar) { Text(textoDoBotao) }
     }
@@ -227,7 +232,7 @@ private fun CartaoDeContato(
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.semantics(mergeDescendants = true) {}) {
                 Text(
                     text = nome,
                     style = MaterialTheme.typography.bodyLarge,
@@ -253,22 +258,34 @@ private fun CartaoDeContato(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                Button(onClick = aoLigar, modifier = Modifier.weight(1f).height(52.dp)) {
+                Button(
+                    onClick = aoLigar,
+                    modifier = Modifier.weight(1f).heightIn(min = 52.dp).semantics { contentDescription = "Ligar para $nome" },
+                ) {
                     Icon(Icons.Filled.Call, contentDescription = null)
                     Text("Ligar", modifier = Modifier.padding(start = 8.dp), style = MaterialTheme.typography.labelLarge)
                 }
-                OutlinedButton(onClick = aoChamarNoWhatsApp, modifier = Modifier.weight(1f).height(52.dp)) {
+                OutlinedButton(
+                    onClick = aoChamarNoWhatsApp,
+                    modifier = Modifier.weight(1f).heightIn(min = 52.dp).semantics { contentDescription = "Chamar $nome no WhatsApp" },
+                ) {
                     Text("WhatsApp", style = MaterialTheme.typography.labelLarge)
                 }
             }
 
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 if (textoDaAcaoExtra != null) {
-                    TextButton(onClick = aoAcaoExtra) { Text(textoDaAcaoExtra, style = MaterialTheme.typography.labelLarge) }
+                    TextButton(
+                        onClick = aoAcaoExtra,
+                        modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = "Usar $nome como preferida" },
+                    ) { Text(textoDaAcaoExtra, style = MaterialTheme.typography.labelLarge) }
                 } else {
                     Text("")
                 }
-                TextButton(onClick = aoExcluir) {
+                TextButton(
+                    onClick = aoExcluir,
+                    modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = "Remover $nome" },
+                ) {
                     Text("Remover", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge)
                 }
             }

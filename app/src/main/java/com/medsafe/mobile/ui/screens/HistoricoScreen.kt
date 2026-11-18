@@ -29,6 +29,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,7 +82,7 @@ fun HistoricoScreen(
                     text = "Histórico",
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.fillMaxWidth().padding(20.dp),
+                    modifier = Modifier.fillMaxWidth().padding(20.dp).semantics { heading() },
                 )
             }
 
@@ -129,7 +132,7 @@ fun HistoricoScreen(
                             text = tituloDoDia(dia),
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.padding(top = 8.dp),
+                            modifier = Modifier.padding(top = 8.dp).semantics { heading() },
                         )
                     }
                     items(doses, key = { it.id }) { dose -> LinhaDoHistorico(dose) }
@@ -185,7 +188,7 @@ private fun LinhaDoHistorico(dose: Dose) {
 
     Surface(color = fundo, shape = RoundedCornerShape(14.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp).semantics(mergeDescendants = true) {},
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Surface(shape = CircleShape, color = circulo, modifier = Modifier.size(48.dp)) {

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,6 +45,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -132,6 +136,7 @@ fun DashboardScreen(
                             text = "Remédios de hoje",
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.semantics { heading() },
                         )
                         Button(
                             onClick = aoAdicionarMedicamento,
@@ -178,6 +183,7 @@ fun DashboardScreen(
                             text = "Estoque baixo",
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.semantics { heading() },
                         )
                     }
                     items(estado.estoqueBaixo, key = { "estoque-${it.id}" }) { medicamento ->
@@ -236,12 +242,13 @@ private fun CabecalhoDashboard(nomeUsuario: String, aoAbrirConfiguracoes: () -> 
                     text = if (nomeUsuario.isBlank()) "Olá" else "Olá, ${nomeUsuario.substringBefore(' ')}",
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.semantics { heading() },
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = aoAbrirConfiguracoes) {
+                    TextButton(onClick = aoAbrirConfiguracoes, modifier = Modifier.heightIn(min = 48.dp)) {
                         Text("Ajustes", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.labelLarge)
                     }
-                    TextButton(onClick = aoSair) {
+                    TextButton(onClick = aoSair, modifier = Modifier.heightIn(min = 48.dp)) {
                         Text("Sair", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.labelLarge)
                     }
                 }
@@ -269,7 +276,7 @@ private fun CartaoDeDose(
 
     Surface(color = corDeFundo, shape = RoundedCornerShape(16.dp)) {
         Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.semantics(mergeDescendants = true) {}) {
                 Surface(shape = CircleShape, color = MaterialTheme.colorScheme.background, modifier = Modifier.size(56.dp)) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
@@ -315,11 +322,18 @@ private fun CartaoDeDose(
                                 containerColor = MedSafeAccent,
                                 contentColor = MaterialTheme.colorScheme.onBackground,
                             ),
-                            modifier = Modifier.weight(1f).padding(vertical = 2.dp),
+                            modifier = Modifier.weight(1f).padding(vertical = 2.dp).semantics {
+                                contentDescription = "Tomei: ${dose.medicamentoNome} das $horario"
+                            },
                         ) {
                             Text("Tomei", style = MaterialTheme.typography.labelLarge)
                         }
-                        OutlinedButton(onClick = aoPular, modifier = Modifier.weight(1f).padding(vertical = 2.dp)) {
+                        OutlinedButton(
+                            onClick = aoPular,
+                            modifier = Modifier.weight(1f).padding(vertical = 2.dp).semantics {
+                                contentDescription = "Pular: ${dose.medicamentoNome} das $horario"
+                            },
+                        ) {
                             Text("Pular", style = MaterialTheme.typography.labelLarge)
                         }
                     }
@@ -341,7 +355,7 @@ private fun CartaoDeEstoqueBaixo(
 ) {
     Surface(color = MedSafeWarningContainer, shape = RoundedCornerShape(16.dp)) {
         Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.semantics(mergeDescendants = true) {}) {
                 Icon(imageVector = Icons.Filled.WarningAmber, contentDescription = null, tint = MedSafeOnWarningContainer)
                 Column(modifier = Modifier.padding(start = 16.dp)) {
                     Text(
@@ -366,16 +380,23 @@ private fun CartaoDeEstoqueBaixo(
                 if (farmaciaPreferida != null) {
                     Button(
                         onClick = { aoPedirNoWhatsApp(farmaciaPreferida) },
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).semantics {
+                            contentDescription = "Pedir ${medicamento.nome} na ${farmaciaPreferida.nome} pelo WhatsApp"
+                        },
                     ) {
                         Text("Pedir na ${farmaciaPreferida.nome} (WhatsApp)", style = MaterialTheme.typography.labelLarge)
                     }
                 } else {
-                    OutlinedButton(onClick = aoCadastrarFarmacia, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                    OutlinedButton(onClick = aoCadastrarFarmacia, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                         Text("Cadastrar minha farmácia", style = MaterialTheme.typography.labelLarge)
                     }
                 }
-                OutlinedButton(onClick = aoRepor, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                OutlinedButton(
+                    onClick = aoRepor,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).semantics {
+                        contentDescription = "Já comprei ${medicamento.nome}: somar ao estoque"
+                    },
+                ) {
                     Text("Já comprei", style = MaterialTheme.typography.labelLarge)
                 }
             }
