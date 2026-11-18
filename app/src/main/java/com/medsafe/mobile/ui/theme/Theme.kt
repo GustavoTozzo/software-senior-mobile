@@ -10,7 +10,11 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalDensity
@@ -68,6 +72,9 @@ private val HighContrastColors = lightColorScheme(
     error = Color(0xFF8C0009),
 )
 
+/** Quando a tela atual tem a barra superior na cor primaria, os icones da barra de status seguem essa cor. */
+private val LocalBarraSobrePrimaria = compositionLocalOf<MutableState<Boolean>?> { null }
+
 @Composable
 fun MedSafeSeniorTheme(
     preferencias: Preferencias = Preferencias(),
@@ -80,12 +87,19 @@ fun MedSafeSeniorTheme(
         else -> LightColors
     }
 
-    // Os icones da barra de status precisam contrastar com o fundo escolhido no app (nao com o do celular).
+    // Os icones da barra de status precisam contrastar com o que fica atras deles: o fundo da tela ou, nas telas
+    // com barra superior verde (Ajustes, Novo medicamento), a propria cor primaria. Uma unica regra decide,
+    // para a troca de tema nao desfazer o que a tela pediu.
+    val sobrePrimaria = remember { mutableStateOf(false) }
+    val barraSobrePrimaria = sobrePrimaria.value
+    // 0,18 e o ponto em que icones brancos e pretos tem o mesmo contraste: abaixo dele, icones claros.
+    val primariaEscura = colorScheme.primary.luminance() < 0.18f
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
+            val iconesClaros = if (barraSobrePrimaria) primariaEscura else escuro
             view.context.encontrarActivity()?.window?.let { janela ->
-                WindowCompat.getInsetsController(janela, view).isAppearanceLightStatusBars = !escuro
+                WindowCompat.getInsetsController(janela, view).isAppearanceLightStatusBars = !iconesClaros
             }
         }
     }
@@ -94,7 +108,10 @@ fun MedSafeSeniorTheme(
     val densidade = LocalDensity.current
     val densidadeAjustada = Density(densidade.density, densidade.fontScale * preferencias.tamanhoDoTexto.escala)
 
-    CompositionLocalProvider(LocalDensity provides densidadeAjustada) {
+    CompositionLocalProvider(
+        LocalDensity provides densidadeAjustada,
+        LocalBarraSobrePrimaria provides sobrePrimaria,
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = MedSafeTypography,
@@ -103,29 +120,18 @@ fun MedSafeSeniorTheme(
     }
 }
 
+/** Telas com barra superior na cor primaria (Ajustes, Novo medicamento) chamam isto; ao sair, volta ao normal. */
+@Composable
+fun IconesDaBarraDeStatusSobreAPrimaria() {
+    val estado = LocalBarraSobrePrimaria.current
+    DisposableEffect(estado) {
+        estado?.value = true
+        onDispose { estado?.value = false }
+    }
+}
+
 private tailrec fun Context.encontrarActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.encontrarActivity()
     else -> null
-}
-
-/**
- * Telas com barra superior na cor primaria (Ajustes, Novo medicamento) desenham essa cor atras da barra de
- * status; os icones dela precisam contrastar com a primaria do tema (claros sobre verde escuro, escuros
- * sobre o verde claro do tema escuro) e voltam ao normal ao sair da tela.
- */
-@Composable
-fun IconesDaBarraDeStatusSobreAPrimaria() {
-    val view = LocalView.current
-    if (view.isInEditMode) return
-    val primariaEscura = MaterialTheme.colorScheme.primary.luminance() < 0.5f
-    DisposableEffect(primariaEscura) {
-        val janela = view.context.encontrarActivity()?.window
-        val controle = janela?.let { WindowCompat.getInsetsController(it, view) }
-        val anterior = controle?.isAppearanceLightStatusBars
-        controle?.isAppearanceLightStatusBars = !primariaEscura
-        onDispose {
-            if (controle != null && anterior != null) controle.isAppearanceLightStatusBars = anterior
-        }
-    }
 }
