@@ -5,12 +5,14 @@ import android.content.Context
 import com.medsafe.mobile.alarmes.AlarmScheduler
 import com.medsafe.mobile.alarmes.Notificacoes
 import com.medsafe.mobile.data.MedSafeRepository
+import com.medsafe.mobile.data.PreferenciasStore
 import com.medsafe.mobile.data.SessionStore
 import com.medsafe.mobile.data.api.ApiFactory
 
 /** Dependencias compartilhadas pelo app inteiro (criadas uma vez, na abertura do processo). */
 class AppContainer(context: Context) {
     val sessionStore = SessionStore(context)
+    val preferencias = PreferenciasStore(context)
     val repository = MedSafeRepository(ApiFactory.criar(sessionStore), sessionStore)
     val alarmes = AlarmScheduler(context)
 }

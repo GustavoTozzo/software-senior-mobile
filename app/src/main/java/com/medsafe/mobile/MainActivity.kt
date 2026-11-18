@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.medsafe.mobile.ui.components.DestinoPrincipal
 import com.medsafe.mobile.ui.screens.CadastroMedicamentoScreen
+import com.medsafe.mobile.ui.screens.ConfiguracoesScreen
 import com.medsafe.mobile.ui.screens.ContatosScreen
 import com.medsafe.mobile.ui.screens.DashboardScreen
 import com.medsafe.mobile.ui.screens.HistoricoScreen
@@ -29,6 +30,7 @@ private object Rotas {
     const val CADASTRO_MEDICAMENTO = "cadastro_medicamento"
     const val HISTORICO = "historico"
     const val CONTATOS = "contatos"
+    const val CONFIGURACOES = "configuracoes"
 }
 
 class MainActivity : ComponentActivity() {
@@ -36,7 +38,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MedSafeSeniorTheme {
+            val preferencias by (application as MedSafeApp).container.preferencias.preferencias.collectAsStateWithLifecycle()
+            MedSafeSeniorTheme(preferencias) {
                 MedSafeSeniorApp()
             }
         }
@@ -44,7 +47,7 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Navegacao do app: Login -> Dashboard <-> Historico <-> Contatos, e Dashboard -> Cadastro de Medicamento.
+ * Navegacao do app: Login -> Dashboard <-> Historico <-> Contatos, e Dashboard -> Cadastro de Medicamento e Ajustes.
  * Quem esta logado entra direto no Dashboard; ao sair (ou quando o servidor recusa o token
  * expirado) a pilha e limpa e o app volta para o Login.
  */
@@ -95,6 +98,7 @@ fun MedSafeSeniorApp(navController: NavHostController = rememberNavController())
         composable(Rotas.DASHBOARD) {
             DashboardScreen(
                 aoAdicionarMedicamento = { navController.navigate(Rotas.CADASTRO_MEDICAMENTO) },
+                aoAbrirConfiguracoes = { navController.navigate(Rotas.CONFIGURACOES) },
                 aoNavegar = aoNavegar,
             )
         }
@@ -109,6 +113,9 @@ fun MedSafeSeniorApp(navController: NavHostController = rememberNavController())
         }
         composable(Rotas.CONTATOS) {
             ContatosScreen(aoNavegar = aoNavegar)
+        }
+        composable(Rotas.CONFIGURACOES) {
+            ConfiguracoesScreen(aoVoltar = { navController.popBackStack() })
         }
     }
 }

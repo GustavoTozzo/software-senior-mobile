@@ -81,6 +81,7 @@ private val FormatoDataPorExtenso: DateTimeFormatter =
 @Composable
 fun DashboardScreen(
     aoAdicionarMedicamento: () -> Unit,
+    aoAbrirConfiguracoes: () -> Unit,
     aoNavegar: (DestinoPrincipal) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DashboardViewModel = viewModel(factory = rememberViewModelFactory()),
@@ -110,6 +111,7 @@ fun DashboardScreen(
         Column(modifier = Modifier.padding(innerPadding)) {
             CabecalhoDashboard(
                 nomeUsuario = sessao?.usuarioNome.orEmpty(),
+                aoAbrirConfiguracoes = aoAbrirConfiguracoes,
                 aoSair = { confirmandoSaida = true },
             )
 
@@ -222,7 +224,7 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun CabecalhoDashboard(nomeUsuario: String, aoSair: () -> Unit) {
+private fun CabecalhoDashboard(nomeUsuario: String, aoAbrirConfiguracoes: () -> Unit, aoSair: () -> Unit) {
     Surface(color = MaterialTheme.colorScheme.primary) {
         Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
             Row(
@@ -235,8 +237,13 @@ private fun CabecalhoDashboard(nomeUsuario: String, aoSair: () -> Unit) {
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onPrimary,
                 )
-                TextButton(onClick = aoSair) {
-                    Text("Sair", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.labelLarge)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = aoAbrirConfiguracoes) {
+                        Text("Ajustes", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.labelLarge)
+                    }
+                    TextButton(onClick = aoSair) {
+                        Text("Sair", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.labelLarge)
+                    }
                 }
             }
             Text(

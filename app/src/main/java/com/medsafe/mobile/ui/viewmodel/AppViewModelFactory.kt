@@ -15,13 +15,15 @@ class AppViewModelFactory(private val container: AppContainer) : ViewModelProvid
         modelClass.isAssignableFrom(AuthViewModel::class.java) ->
             AuthViewModel(container.repository) as T
         modelClass.isAssignableFrom(DashboardViewModel::class.java) ->
-            DashboardViewModel(container.repository, container.alarmes) as T
+            DashboardViewModel(container.repository, container.alarmes, container.preferencias) as T
         modelClass.isAssignableFrom(CadastroMedicamentoViewModel::class.java) ->
             CadastroMedicamentoViewModel(container.repository) as T
         modelClass.isAssignableFrom(HistoricoViewModel::class.java) ->
             HistoricoViewModel(container.repository) as T
         modelClass.isAssignableFrom(ContatosViewModel::class.java) ->
             ContatosViewModel(container.repository) as T
+        modelClass.isAssignableFrom(ConfiguracoesViewModel::class.java) ->
+            ConfiguracoesViewModel(container.preferencias, container.repository, container.alarmes) as T
         else -> throw IllegalArgumentException("ViewModel desconhecido: ${modelClass.name}")
     }
 }

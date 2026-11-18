@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.medsafe.mobile.alarmes.AlarmScheduler
 import com.medsafe.mobile.data.MedSafeRepository
+import com.medsafe.mobile.data.PreferenciasStore
 import com.medsafe.mobile.data.Resultado
 import com.medsafe.mobile.model.Dose
 import com.medsafe.mobile.model.Farmacia
@@ -31,6 +32,7 @@ data class DashboardUiState(
 class DashboardViewModel(
     private val repositorio: MedSafeRepository,
     private val alarmes: AlarmScheduler,
+    private val preferencias: PreferenciasStore,
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(DashboardUiState())
@@ -56,7 +58,11 @@ class DashboardViewModel(
                 is Resultado.Sucesso -> {
                     val emFalta = medicamentos.dados.filter { m -> m.estoqueBaixo }
                     _estado.update { it.copy(estoqueBaixo = emFalta) }
-                    alarmes.reagendar(medicamentos.dados)
+                    if (preferencias.preferencias.value.lembretesDeRemedio) {
+                        alarmes.reagendar(medicamentos.dados)
+                    } else {
+                        alarmes.cancelarTodos()
+                    }
                     if (emFalta.isNotEmpty()) carregarFarmaciaPreferida()
                 }
                 is Resultado.Erro -> _estado.update { it.copy(erro = medicamentos.mensagem) }
