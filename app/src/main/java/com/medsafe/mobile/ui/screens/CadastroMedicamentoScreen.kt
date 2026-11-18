@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package com.medsafe.mobile.ui.screens
 
 import android.app.DatePickerDialog
@@ -7,6 +9,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,6 +60,7 @@ import com.medsafe.mobile.ui.components.LinhaComChave
 import com.medsafe.mobile.ui.components.MensagemDeErro
 import com.medsafe.mobile.ui.components.OpcaoSelecionavel
 import com.medsafe.mobile.ui.scanner.BarcodeScannerScreen
+import com.medsafe.mobile.ui.theme.IconesDaBarraDeStatusSobreAPrimaria
 import com.medsafe.mobile.ui.theme.MedSafeOnSuccessContainer
 import com.medsafe.mobile.ui.theme.MedSafeSuccessContainer
 import com.medsafe.mobile.ui.viewmodel.CadastroMedicamentoViewModel
@@ -95,6 +99,8 @@ fun CadastroMedicamentoScreen(
         )
         return
     }
+
+    IconesDaBarraDeStatusSobreAPrimaria()
 
     Scaffold(
         modifier = modifier,
@@ -216,7 +222,11 @@ fun CadastroMedicamentoScreen(
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Rotulo("Frequência")
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                FlowRow(
+ horizontalArrangement = Arrangement.spacedBy(10.dp),
+ verticalArrangement = Arrangement.spacedBy(10.dp),
+ modifier = Modifier.fillMaxWidth(),
+ ) {
                     Frequencia.entries.forEach { opcao ->
                         OpcaoSelecionavel(
                             rotulo = opcao.rotulo,
@@ -291,7 +301,11 @@ fun CadastroMedicamentoScreen(
                     }
 
                     Rotulo("Prazo entre retiradas")
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    FlowRow(
+ horizontalArrangement = Arrangement.spacedBy(10.dp),
+ verticalArrangement = Arrangement.spacedBy(10.dp),
+ modifier = Modifier.fillMaxWidth(),
+ ) {
                         FarmaciaPopular.PRAZOS_EM_DIAS.forEach { dias ->
                             OpcaoSelecionavel(
                                 rotulo = "$dias dias",

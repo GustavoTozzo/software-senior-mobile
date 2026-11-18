@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -28,11 +29,11 @@ import com.medsafe.mobile.ui.theme.MedSafeEmergency
 import com.medsafe.mobile.ui.theme.MedSafeOnDangerContainer
 
 /** Numeros de emergencia do Brasil: SAMU (192, urgencia medica) e Policia Militar (190). */
-private data class NumeroDeEmergencia(val numero: String, val nome: String)
+private data class NumeroDeEmergencia(val numero: String, val nome: String, val artigoENome: String)
 
 private val Numeros = listOf(
-    NumeroDeEmergencia("192", "SAMU"),
-    NumeroDeEmergencia("190", "Polícia"),
+    NumeroDeEmergencia("192", "SAMU", "o SAMU"),
+    NumeroDeEmergencia("190", "Polícia", "a Polícia"),
 )
 
 /**
@@ -42,8 +43,6 @@ private val Numeros = listOf(
  */
 @Composable
 fun BotoesDeEmergencia(modifier: Modifier = Modifier, compacto: Boolean = false) {
-    val contexto = LocalContext.current
-
     Surface(color = MedSafeDangerContainer, shape = RoundedCornerShape(16.dp), modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (!compacto) {
@@ -59,26 +58,36 @@ fun BotoesDeEmergencia(modifier: Modifier = Modifier, compacto: Boolean = false)
                     color = MedSafeOnDangerContainer,
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                Numeros.forEach { emergencia ->
-                    Button(
-                        onClick = { contexto.discar(emergencia.numero) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MedSafeEmergency, contentColor = Color.White),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .weight(1f)
-                            .heightIn(min = 56.dp)
-                            .semantics { contentDescription = "Ligar para o ${emergencia.nome}, número ${emergencia.numero}" },
-                    ) {
-                        Icon(Icons.Filled.Call, contentDescription = null)
-                        Text(
-                            text = "${emergencia.nome} ${emergencia.numero}",
-                            style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier.padding(start = 8.dp),
-                        )
-                    }
+            // Com a fonte em tamanho muito grande, dois botoes lado a lado quebrariam as palavras: empilha.
+            if (LocalDensity.current.fontScale >= 1.4f) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    Numeros.forEach { BotaoDeEmergencia(it, Modifier.fillMaxWidth()) }
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    Numeros.forEach { BotaoDeEmergencia(it, Modifier.weight(1f)) }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun BotaoDeEmergencia(emergencia: NumeroDeEmergencia, modifier: Modifier) {
+    val contexto = LocalContext.current
+    Button(
+        onClick = { contexto.discar(emergencia.numero) },
+        colors = ButtonDefaults.buttonColors(containerColor = MedSafeEmergency, contentColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
+        modifier = modifier
+            .heightIn(min = 56.dp)
+            .semantics { contentDescription = "Ligar para ${emergencia.artigoENome}, número ${emergencia.numero}" },
+    ) {
+        Icon(Icons.Filled.Call, contentDescription = null)
+        Text(
+            text = "${emergencia.nome} ${emergencia.numero}",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(start = 8.dp),
+        )
     }
 }

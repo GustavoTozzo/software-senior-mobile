@@ -91,7 +91,7 @@ fun OpcaoSelecionavel(
             selected = selecionado
         },
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp)) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
             Text(text = rotulo, style = MaterialTheme.typography.bodyLarge)
         }
     }

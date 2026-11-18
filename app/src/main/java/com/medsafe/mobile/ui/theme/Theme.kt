@@ -9,8 +9,10 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Density
@@ -35,7 +37,7 @@ private val LightColors = lightColorScheme(
 )
 
 private val DarkColors = darkColorScheme(
-    primary = MedSafeGreenLight,
+    primary = Color(0xFF81C784),
     onPrimary = MedSafeOnBackground,
     primaryContainer = MedSafeGreenDark,
     onPrimaryContainer = MedSafeBackground,
@@ -105,4 +107,25 @@ private tailrec fun Context.encontrarActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.encontrarActivity()
     else -> null
+}
+
+/**
+ * Telas com barra superior na cor primaria (Ajustes, Novo medicamento) desenham essa cor atras da barra de
+ * status; os icones dela precisam contrastar com a primaria do tema (claros sobre verde escuro, escuros
+ * sobre o verde claro do tema escuro) e voltam ao normal ao sair da tela.
+ */
+@Composable
+fun IconesDaBarraDeStatusSobreAPrimaria() {
+    val view = LocalView.current
+    if (view.isInEditMode) return
+    val primariaEscura = MaterialTheme.colorScheme.primary.luminance() < 0.5f
+    DisposableEffect(primariaEscura) {
+        val janela = view.context.encontrarActivity()?.window
+        val controle = janela?.let { WindowCompat.getInsetsController(it, view) }
+        val anterior = controle?.isAppearanceLightStatusBars
+        controle?.isAppearanceLightStatusBars = !primariaEscura
+        onDispose {
+            if (controle != null && anterior != null) controle.isAppearanceLightStatusBars = anterior
+        }
+    }
 }

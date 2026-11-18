@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package com.medsafe.mobile.ui.screens
 
 import android.content.ActivityNotFoundException
@@ -6,6 +8,7 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,6 +47,7 @@ import com.medsafe.mobile.model.TemaDoApp
 import com.medsafe.mobile.ui.components.LinhaComChave
 import com.medsafe.mobile.ui.components.MensagemDeErro
 import com.medsafe.mobile.ui.components.OpcaoSelecionavel
+import com.medsafe.mobile.ui.theme.IconesDaBarraDeStatusSobreAPrimaria
 import com.medsafe.mobile.ui.viewmodel.ConfiguracoesViewModel
 import com.medsafe.mobile.ui.viewmodel.rememberViewModelFactory
 
@@ -58,6 +62,8 @@ fun ConfiguracoesScreen(
     val preferencias by viewModel.preferencias.collectAsStateWithLifecycle()
     val aviso by viewModel.aviso.collectAsStateWithLifecycle()
     val contexto = LocalContext.current
+
+    IconesDaBarraDeStatusSobreAPrimaria()
 
     Scaffold(
         modifier = modifier,
@@ -88,21 +94,28 @@ fun ConfiguracoesScreen(
             Titulo("Aparência")
 
             Rotulo("Tema")
-            TemaDoApp.entries.chunked(2).forEach { linha ->
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                    linha.forEach { tema ->
-                        OpcaoSelecionavel(
-                            rotulo = tema.rotulo,
-                            selecionado = preferencias.tema == tema,
-                            aoSelecionar = { viewModel.escolherTema(tema) },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+            FlowRow(
+                maxItemsInEachRow = 2,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                TemaDoApp.entries.forEach { tema ->
+                    OpcaoSelecionavel(
+                        rotulo = tema.rotulo,
+                        selecionado = preferencias.tema == tema,
+                        aoSelecionar = { viewModel.escolherTema(tema) },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
 
             Rotulo("Tamanho do texto")
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
                 TamanhoDoTexto.entries.forEach { tamanho ->
                     OpcaoSelecionavel(
                         rotulo = tamanho.rotulo,

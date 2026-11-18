@@ -1,7 +1,10 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package com.medsafe.mobile.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -72,7 +75,11 @@ fun LoginScreen(
     ) {
         Cabecalho()
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+        FlowRow(
+ horizontalArrangement = Arrangement.spacedBy(12.dp),
+ verticalArrangement = Arrangement.spacedBy(12.dp),
+ modifier = Modifier.fillMaxWidth(),
+ ) {
             OpcaoSelecionavel(
                 rotulo = "Entrar",
                 selecionado = !modoCadastro,
@@ -114,7 +121,11 @@ fun LoginScreen(
                 erro = estado.errosPorCampo["idade"],
             )
             Text("Como você vai usar o app?", style = MaterialTheme.typography.labelLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+            FlowRow(
+ horizontalArrangement = Arrangement.spacedBy(12.dp),
+ verticalArrangement = Arrangement.spacedBy(12.dp),
+ modifier = Modifier.fillMaxWidth(),
+ ) {
                 PerfilUsuario.entries.forEach { opcao ->
                     OpcaoSelecionavel(
                         rotulo = opcao.rotulo,

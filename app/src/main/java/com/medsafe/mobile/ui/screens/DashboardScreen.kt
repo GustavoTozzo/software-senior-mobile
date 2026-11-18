@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package com.medsafe.mobile.ui.screens
 
 import android.Manifest
@@ -8,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -130,19 +134,20 @@ fun DashboardScreen(
                 item { BotoesDeEmergencia(compacto = true) }
 
                 item {
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(
                             text = "Remédios de hoje",
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.semantics { heading() },
+                            modifier = Modifier.align(Alignment.CenterVertically).semantics { heading() },
                         )
                         Button(
                             onClick = aoAdicionarMedicamento,
+                            modifier = Modifier.align(Alignment.CenterVertically),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         ) {
                             Text("+ Novo remédio")
@@ -267,14 +272,16 @@ fun DashboardScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CabecalhoDashboard(nomeUsuario: String, aoAbrirConfiguracoes: () -> Unit, aoSair: () -> Unit) {
     Surface(color = MaterialTheme.colorScheme.primary) {
         Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-            Row(
+            // Com texto muito grande, "Ajustes" e "Sair" passam para a linha de baixo em vez de serem cortados.
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.Center,
             ) {
                 Text(
                     text = if (nomeUsuario.isBlank()) "Olá" else "Olá, ${nomeUsuario.substringBefore(' ')}",

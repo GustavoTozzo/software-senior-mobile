@@ -15,9 +15,12 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 
 enum class DestinoPrincipal(val rotulo: String, val icone: ImageVector) {
     INICIO("Início", Icons.Filled.Home),
@@ -35,6 +38,9 @@ fun BottomNavBar(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         HorizontalDivider()
+        // Quatro rotulos lado a lado nao cabem com a fonte do sistema em 200%: limita so a escala da barra.
+        val densidade = LocalDensity.current
+        CompositionLocalProvider(LocalDensity provides Density(densidade.density, minOf(densidade.fontScale, 1.3f))) {
         NavigationBar(containerColor = MaterialTheme.colorScheme.background) {
             DestinoPrincipal.entries.forEach { destino ->
                 NavigationBarItem(
@@ -51,6 +57,7 @@ fun BottomNavBar(
                     ),
                 )
             }
+        }
         }
     }
 }
