@@ -40,6 +40,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.medsafe.mobile.model.ContatoEmergencia
 import com.medsafe.mobile.model.Farmacia
 import com.medsafe.mobile.model.Telefones
+import com.medsafe.mobile.ui.components.BotoesDeEmergencia
 import com.medsafe.mobile.ui.components.BottomNavBar
 import com.medsafe.mobile.ui.components.Carregando
 import com.medsafe.mobile.ui.components.CampoDeTexto
@@ -103,6 +104,8 @@ fun ContatosScreen(
                         }
                     }
                 }
+
+                item { BotoesDeEmergencia() }
 
                 item {
                     TituloDaSecao("Minhas farmácias", "+ Farmácia") { viewModel.abrirFormulario(TipoContato.FARMACIA) }

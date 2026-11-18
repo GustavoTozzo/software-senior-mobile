@@ -20,3 +20,6 @@ val MedSafeWarningContainer = Color(0xFFFAEEDA)
 val MedSafeOnWarningContainer = Color(0xFF412402)
 val MedSafeDangerContainer = Color(0xFFFAECE7)
 val MedSafeOnDangerContainer = Color(0xFF4A1B0C)
+
+// Botoes de emergencia (192/190): vermelho forte, com texto branco (contraste acima de 6:1 sobre o fundo claro).
+val MedSafeEmergency = Color(0xFFB3261E)

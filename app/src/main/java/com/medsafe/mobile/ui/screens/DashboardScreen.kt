@@ -55,6 +55,7 @@ import com.medsafe.mobile.model.Estoque
 import com.medsafe.mobile.model.Farmacia
 import com.medsafe.mobile.model.Medicamento
 import com.medsafe.mobile.model.StatusDose
+import com.medsafe.mobile.ui.components.BotoesDeEmergencia
 import com.medsafe.mobile.ui.components.BottomNavBar
 import com.medsafe.mobile.ui.components.CampoDeTexto
 import com.medsafe.mobile.ui.components.Carregando
@@ -117,6 +118,8 @@ fun DashboardScreen(
                 contentPadding = PaddingValues(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                item { BotoesDeEmergencia(compacto = true) }
+
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
