@@ -20,6 +20,8 @@ class AppViewModelFactory(private val container: AppContainer) : ViewModelProvid
             CadastroMedicamentoViewModel(container.repository) as T
         modelClass.isAssignableFrom(HistoricoViewModel::class.java) ->
             HistoricoViewModel(container.repository) as T
+        modelClass.isAssignableFrom(ContatosViewModel::class.java) ->
+            ContatosViewModel(container.repository) as T
         else -> throw IllegalArgumentException("ViewModel desconhecido: ${modelClass.name}")
     }
 }

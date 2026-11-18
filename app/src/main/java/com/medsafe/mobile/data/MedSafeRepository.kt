@@ -2,7 +2,11 @@ package com.medsafe.mobile.data
 
 import com.google.gson.Gson
 import com.medsafe.mobile.data.api.AuthResponse
+import com.medsafe.mobile.data.api.ContatoEmergenciaRequest
+import com.medsafe.mobile.data.api.ContatoEmergenciaResponse
 import com.medsafe.mobile.data.api.ErroApiResponse
+import com.medsafe.mobile.data.api.FarmaciaRequest
+import com.medsafe.mobile.data.api.FarmaciaResponse
 import com.medsafe.mobile.data.api.HistoricoResponse
 import com.medsafe.mobile.data.api.LoginRequest
 import com.medsafe.mobile.data.api.MedSafeApi
@@ -10,7 +14,9 @@ import com.medsafe.mobile.data.api.MedicamentoRequest
 import com.medsafe.mobile.data.api.MedicamentoResponse
 import com.medsafe.mobile.data.api.RegistroRequest
 import com.medsafe.mobile.data.api.StatusRequest
+import com.medsafe.mobile.model.ContatoEmergencia
 import com.medsafe.mobile.model.Dose
+import com.medsafe.mobile.model.Farmacia
 import com.medsafe.mobile.model.Medicamento
 import com.medsafe.mobile.model.Sessao
 import com.medsafe.mobile.model.StatusDose
@@ -72,6 +78,31 @@ class MedSafeRepository(
         )
         return chamar { api.criarMedicamento(corpo) }.mapear { it.paraModelo() }
     }
+
+    suspend fun farmacias(): Resultado<List<Farmacia>> =
+        chamar { api.farmacias() }.mapear { lista -> lista.map { it.paraModelo() } }
+
+    suspend fun criarFarmacia(nome: String, telefone: String): Resultado<Farmacia> =
+        chamar { api.criarFarmacia(FarmaciaRequest(nome, telefone, null, null)) }.mapear { it.paraModelo() }
+
+    suspend fun definirFarmaciaPreferida(farmacia: Farmacia): Resultado<Farmacia> =
+        chamar {
+            api.atualizarFarmacia(
+                farmacia.id,
+                FarmaciaRequest(farmacia.nome, farmacia.telefone, farmacia.whatsappLink, preferida = true),
+            )
+        }.mapear { it.paraModelo() }
+
+    suspend fun excluirFarmacia(id: Long): Resultado<Unit> = chamar { api.excluirFarmacia(id) }
+
+    suspend fun contatos(): Resultado<List<ContatoEmergencia>> =
+        chamar { api.contatos() }.mapear { lista -> lista.map { it.paraModelo() } }
+
+    suspend fun criarContato(nome: String, parentesco: String?, telefone: String): Resultado<ContatoEmergencia> =
+        chamar { api.criarContato(ContatoEmergenciaRequest(nome, parentesco?.takeIf { it.isNotBlank() }, telefone)) }
+            .mapear { it.paraModelo() }
+
+    suspend fun excluirContato(id: Long): Resultado<Unit> = chamar { api.excluirContato(id) }
 
     /** Doses do dia (o backend cria as pendentes a partir dos horarios dos medicamentos). */
     suspend fun agenda(data: LocalDate? = null): Resultado<List<Dose>> =
@@ -139,6 +170,21 @@ class MedSafeRepository(
         estoqueBaixo = estoqueBaixo,
         frequencia = doseFrequencia,
         horarios = horariosProgramados.split(",").map { it.trim() }.filter { it.isNotEmpty() },
+    )
+
+    private fun FarmaciaResponse.paraModelo() = Farmacia(
+        id = id,
+        nome = nome,
+        telefone = telefone,
+        whatsappLink = whatsappLink,
+        preferida = preferida,
+    )
+
+    private fun ContatoEmergenciaResponse.paraModelo() = ContatoEmergencia(
+        id = id,
+        nome = nome,
+        parentesco = parentesco,
+        telefone = telefone,
     )
 
     private fun HistoricoResponse.paraModelo() = Dose(

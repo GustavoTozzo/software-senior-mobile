@@ -3,9 +3,9 @@ package com.medsafe.mobile.ui.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -23,7 +23,7 @@ enum class DestinoPrincipal(val rotulo: String, val icone: ImageVector) {
     INICIO("Início", Icons.Filled.Home),
     REMEDIOS("Remédios", Icons.Filled.Medication),
     HISTORICO("Histórico", Icons.Filled.DateRange),
-    FARMACIAS("Farmácias", Icons.Filled.LocationOn),
+    CONTATOS("Contatos", Icons.Filled.Call),
 }
 
 /** Barra inferior compartilhada entre as telas principais. */

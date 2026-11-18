@@ -18,6 +18,22 @@ data class Medicamento(
     val horarios: List<String>,
 )
 
+data class Farmacia(
+    val id: Long,
+    val nome: String,
+    val telefone: String,
+    val whatsappLink: String?,
+    val preferida: Boolean,
+)
+
+/** Familiar ou cuidador que a pessoa quer alcancar com um toque. */
+data class ContatoEmergencia(
+    val id: Long,
+    val nome: String,
+    val parentesco: String?,
+    val telefone: String,
+)
+
 data class Dose(
     val id: Long,
     val medicamentoId: Long,

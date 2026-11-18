@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.medsafe.mobile.ui.components.DestinoPrincipal
 import com.medsafe.mobile.ui.screens.CadastroMedicamentoScreen
+import com.medsafe.mobile.ui.screens.ContatosScreen
 import com.medsafe.mobile.ui.screens.DashboardScreen
 import com.medsafe.mobile.ui.screens.HistoricoScreen
 import com.medsafe.mobile.ui.screens.LoginScreen
@@ -27,6 +28,7 @@ private object Rotas {
     const val DASHBOARD = "dashboard"
     const val CADASTRO_MEDICAMENTO = "cadastro_medicamento"
     const val HISTORICO = "historico"
+    const val CONTATOS = "contatos"
 }
 
 class MainActivity : ComponentActivity() {
@@ -42,7 +44,7 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Navegacao do app: Login -> Dashboard <-> Historico, e Dashboard -> Cadastro de Medicamento.
+ * Navegacao do app: Login -> Dashboard <-> Historico <-> Contatos, e Dashboard -> Cadastro de Medicamento.
  * Quem esta logado entra direto no Dashboard; ao sair (ou quando o servidor recusa o token
  * expirado) a pilha e limpa e o app volta para o Login.
  */
@@ -71,7 +73,11 @@ fun MedSafeSeniorApp(navController: NavHostController = rememberNavController())
                 popUpTo(Rotas.DASHBOARD)
                 launchSingleTop = true
             }
-            DestinoPrincipal.REMEDIOS, DestinoPrincipal.FARMACIAS ->
+            DestinoPrincipal.CONTATOS -> navController.navigate(Rotas.CONTATOS) {
+                popUpTo(Rotas.DASHBOARD)
+                launchSingleTop = true
+            }
+            DestinoPrincipal.REMEDIOS ->
                 Toast.makeText(contexto, "Esta tela chega nas próximas entregas", Toast.LENGTH_SHORT).show()
         }
     }
@@ -100,6 +106,9 @@ fun MedSafeSeniorApp(navController: NavHostController = rememberNavController())
         }
         composable(Rotas.HISTORICO) {
             HistoricoScreen(aoNavegar = aoNavegar)
+        }
+        composable(Rotas.CONTATOS) {
+            ContatosScreen(aoNavegar = aoNavegar)
         }
     }
 }

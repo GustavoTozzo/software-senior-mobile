@@ -49,6 +49,34 @@ data class MedicamentoResponse(
     val horariosProgramados: String,
 )
 
+data class FarmaciaRequest(
+    val nome: String,
+    val telefone: String,
+    val whatsappLink: String?,
+    val preferida: Boolean?,
+)
+
+data class FarmaciaResponse(
+    val id: Long,
+    val nome: String,
+    val telefone: String,
+    val whatsappLink: String?,
+    val preferida: Boolean,
+)
+
+data class ContatoEmergenciaRequest(
+    val nome: String,
+    val parentesco: String?,
+    val telefone: String,
+)
+
+data class ContatoEmergenciaResponse(
+    val id: Long,
+    val nome: String,
+    val parentesco: String?,
+    val telefone: String,
+)
+
 data class HistoricoResponse(
     val id: Long,
     val medicamentoId: Long,
