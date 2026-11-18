@@ -44,9 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.google.mlkit.vision.barcode.BarcodeScannerOptions
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
@@ -196,19 +193,7 @@ private class LeitorDeCodigoDeBarras(
     private val aoDetectar: (String) -> Unit,
 ) : ImageAnalysis.Analyzer {
 
-    private val leitor = BarcodeScanning.getClient(
-        BarcodeScannerOptions.Builder()
-            .setBarcodeFormats(
-                Barcode.FORMAT_EAN_13,
-                Barcode.FORMAT_EAN_8,
-                Barcode.FORMAT_UPC_A,
-                Barcode.FORMAT_UPC_E,
-                Barcode.FORMAT_CODE_128,
-                Barcode.FORMAT_CODE_39,
-                Barcode.FORMAT_ITF,
-            )
-            .build(),
-    )
+    private val leitor = criarLeitorDeCodigos()
 
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
     override fun analyze(imageProxy: ImageProxy) {
@@ -219,10 +204,7 @@ private class LeitorDeCodigoDeBarras(
         }
         val imagem = InputImage.fromMediaImage(imagemDaCamera, imageProxy.imageInfo.rotationDegrees)
         leitor.process(imagem)
-            .addOnSuccessListener { codigos ->
-                codigos.firstNotNullOfOrNull { it.rawValue?.takeIf { valor -> valor.isNotBlank() } }
-                    ?.let(aoDetectar)
-            }
+            .addOnSuccessListener { codigos -> primeiroValor(codigos)?.let(aoDetectar) }
             .addOnCompleteListener { imageProxy.close() }
     }
 }
