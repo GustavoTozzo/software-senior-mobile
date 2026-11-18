@@ -19,19 +19,21 @@ O *MedSafe Senior* resolve problemas críticos de adesão terapêutica na tercei
 5. **Cronograma de Farmácia Popular:** Lembretes de prazos para liberação de novos medicamentos.
 6. **Rede de Apoio e Emergência:** Botões de acesso rápido para o 190 e contatos de familiares/farmácias.
 
-## Estado atual (Entrega 4 + alarmes)
+## Estado atual (Entregas 4 e 5)
 * Login e cadastro reais (JWT), sessão guardada no aparelho; token expirado leva de volta ao login.
-* Dashboard com as doses do dia vindas da API, botões **Tomei** / **Pular** e alerta de estoque baixo.
+* Dashboard com as doses do dia vindas da API e botões **Tomei** / **Pular**.
+* **Estoque preditivo:** o aviso mostra quantos dias o estoque dura no ritmo das doses ("Dá para 4 dias"), oferece **Pedir na farmácia (WhatsApp)** com a mensagem já escrita e **Já comprei** para somar as unidades compradas.
 * Cadastro de medicamento com **leitura de código de barras** pela câmera (CameraX + ML Kit) ou digitação, estoque, frequência e horários.
 * Tela de **Histórico** com filtros Hoje / Semana / Mês, agrupado por dia.
 * **Lembretes na hora de cada remédio**: alarmes exatos (AlarmManager) com notificação, reagendados após reiniciar o celular e funcionando sem internet.
-* Telas de Remédios e Farmácias (barra inferior) chegam nas próximas entregas.
+* Tela de **Contatos**: farmácias (uma delas **preferida**, que recebe o pedido de reposição) e familiares/cuidadores, cada um com **Ligar** (abre o discador, sem permissão de ligação) e **WhatsApp**.
+* A aba Remédios (barra inferior) chega nas próximas entregas.
 
 ## Estrutura do Projeto
 Projeto Android (Gradle + Kotlin DSL + version catalog) com Jetpack Compose, em `app/src/main/java/com/medsafe/mobile/`:
 * `data/` — Retrofit/OkHttp (`api/`), repositório único de acesso à API, sessão (token) e tratamento de erros.
-* `model/` — modelos de tela (medicamento, dose, sessão).
-* `ui/screens/` — Login, Dashboard, Cadastro de Medicamento e Histórico; `ui/viewmodel/` — estado de cada tela; `ui/components/` — componentes compartilhados; `ui/scanner/` — leitor de código de barras; `ui/theme/` — paleta de alto contraste e tipografia ampliada.
+* `model/` — modelos de tela (medicamento, dose, farmácia, contato, sessão) e a lógica pura de telefones/WhatsApp (`Telefones`) e textos de estoque (`Estoque`).
+* `ui/screens/` — Login, Dashboard, Cadastro de Medicamento, Histórico e Contatos; `ui/viewmodel/` — estado de cada tela; `ui/components/` — componentes compartilhados; `ui/scanner/` — leitor de código de barras; `ui/theme/` — paleta de alto contraste e tipografia ampliada.
 * `alarmes/` — agendamento dos lembretes, notificações e reagendamento após o boot.
 
 ## Como rodar
@@ -42,4 +44,4 @@ Projeto Android (Gradle + Kotlin DSL + version catalog) com Jetpack Compose, em 
 O tráfego HTTP sem TLS é permitido **apenas** no build de debug (`app/src/debug`); o build de release exige HTTPS.
 
 ## Testes
-`./gradlew testDebugUnitTest` — testes unitários da lógica pura (cálculo do próximo horário do alarme, períodos do histórico, mapeamento de resultados).
+`./gradlew testDebugUnitTest` — testes unitários da lógica pura (cálculo do próximo horário do alarme, períodos do histórico, mapeamento de resultados, telefones e links do WhatsApp, textos e pedido de reposição do estoque).
