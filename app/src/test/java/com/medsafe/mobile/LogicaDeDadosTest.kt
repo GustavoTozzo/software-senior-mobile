@@ -2,6 +2,7 @@ package com.medsafe.mobile
 
 import com.medsafe.mobile.data.Resultado
 import com.medsafe.mobile.data.mapear
+import com.medsafe.mobile.data.resultadoDoCorpo
 import com.medsafe.mobile.ui.viewmodel.Frequencia
 import com.medsafe.mobile.ui.viewmodel.PeriodoHistorico
 import org.junit.Assert.assertEquals
@@ -18,6 +19,15 @@ class LogicaDeDadosTest {
 
         val erro: Resultado<Int> = Resultado.Erro("falhou", 500)
         assertTrue(erro.mapear { it * 2 } is Resultado.Erro)
+    }
+
+    @Test
+    fun corpoVazioSoEhSucessoQuandoQuemChamouEspera() {
+        assertEquals(Resultado.Sucesso("ok"), resultadoDoCorpo("ok", null))
+        // 204 No Content das exclusoes: nao ha corpo, e isso e o esperado.
+        assertEquals(Resultado.Sucesso(Unit), resultadoDoCorpo<Unit>(null, { Unit }))
+        // Qualquer outra resposta sem corpo continua sendo um erro.
+        assertTrue(resultadoDoCorpo<String>(null, null) is Resultado.Erro)
     }
 
     @Test

@@ -108,7 +108,7 @@ class MedSafeRepository(
             )
         }.mapear { it.paraModelo() }
 
-    suspend fun excluirFarmacia(id: Long): Resultado<Unit> = chamar { api.excluirFarmacia(id) }
+    suspend fun excluirFarmacia(id: Long): Resultado<Unit> = chamar(valorSeVazio = { Unit }) { api.excluirFarmacia(id) }
 
     suspend fun contatos(): Resultado<List<ContatoEmergencia>> =
         chamar { api.contatos() }.mapear { lista -> lista.map { it.paraModelo() } }
@@ -117,7 +117,7 @@ class MedSafeRepository(
         chamar { api.criarContato(ContatoEmergenciaRequest(nome, parentesco?.takeIf { it.isNotBlank() }, telefone)) }
             .mapear { it.paraModelo() }
 
-    suspend fun excluirContato(id: Long): Resultado<Unit> = chamar { api.excluirContato(id) }
+    suspend fun excluirContato(id: Long): Resultado<Unit> = chamar(valorSeVazio = { Unit }) { api.excluirContato(id) }
 
     /** Doses do dia (o backend cria as pendentes a partir dos horarios dos medicamentos). */
     suspend fun agenda(data: LocalDate? = null): Resultado<List<Dose>> =
@@ -137,13 +137,13 @@ class MedSafeRepository(
 
     private suspend fun <T> chamar(
         autenticada: Boolean = true,
+        valorSeVazio: (() -> T)? = null,
         bloco: suspend () -> Response<T>,
     ): Resultado<T> {
         return try {
             val resposta = bloco()
             if (resposta.isSuccessful) {
-                val corpo = resposta.body()
-                if (corpo != null) Resultado.Sucesso(corpo) else Resultado.Erro("O servidor devolveu uma resposta vazia.")
+                resultadoDoCorpo(resposta.body(), valorSeVazio)
             } else {
                 if (resposta.code() == 401 && autenticada) {
                     sessionStore.limpar()

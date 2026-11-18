@@ -12,6 +12,16 @@ sealed interface Resultado<out T> {
     ) : Resultado<Nothing>
 }
 
+/**
+ * Converte o corpo de uma resposta bem-sucedida. Corpo vazio e erro, exceto quando quem chamou
+ * espera isso (respostas 204 No Content das exclusoes): ai vale o [valorSeVazio].
+ */
+internal fun <T> resultadoDoCorpo(corpo: T?, valorSeVazio: (() -> T)?): Resultado<T> = when {
+    corpo != null -> Resultado.Sucesso(corpo)
+    valorSeVazio != null -> Resultado.Sucesso(valorSeVazio())
+    else -> Resultado.Erro("O servidor devolveu uma resposta vazia.")
+}
+
 inline fun <T, R> Resultado<T>.mapear(transformacao: (T) -> R): Resultado<R> = when (this) {
     is Resultado.Sucesso -> Resultado.Sucesso(transformacao(dados))
     is Resultado.Erro -> this
